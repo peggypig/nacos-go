@@ -12,6 +12,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 )
 
 /**
@@ -218,6 +219,7 @@ func (client *ConfigClient) ListenConfig(params []vo.ConfigParam) (err error) {
 func (client *ConfigClient) listenTask() {
 	go func() {
 		for {
+			timer := time.NewTimer(time.Duration(client.ClientConfig.ListenInterval) * time.Millisecond)
 			var listeningConfigs string
 			var errInner error
 			// 检查&拼接监听参数
@@ -287,6 +289,7 @@ func (client *ConfigClient) listenTask() {
 					break
 				}
 			}
+			<-timer.C
 		}
 	}()
 }
