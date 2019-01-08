@@ -1,10 +1,13 @@
 package config_client
 
 import (
+	"errors"
+	"io/ioutil"
 	"log"
-	"nacos-go/common/http"
-	"nacos-go/common/util"
-	"nacos-go/vo"
+	"nacos-go/common/constant"
+	"nacos-go/common/httpagent"
+	"net/http"
+	"strconv"
 )
 
 /**
@@ -13,60 +16,59 @@ import (
 *
 * @author : codezhang
 *
-* @create : 2019-01-07 15:13
+* @create : 2019-01-08 10:01
 **/
 
 type ConfigClient struct {
-	PostTimeout              int64
-	Agent                    http.HttpAgent
-	NameSpace                string
-	Encode                   string
-	Worker                   ClientWorker
-	configFilterChainManager vo.ConfigFilterChainManager
+	Tenant        string
+	ServerConfigs []constant.ServerConfig
+	ClientConfig  constant.ClientConfig
 }
 
-func (client *ConfigClient) AddListener() {
-
-}
-
-func (client *ConfigClient) RemoveListener() {
-
-}
-
-func (client *ConfigClient) GetConfig(dataId string, group string, timeoutMS int64) (content string) {
-	err := util.CheckDataId(dataId)
-	if err != nil {
-		panic(err.Error())
+func (client *ConfigClient) GetConfig(dataId string, group string) (content string, err error) {
+	if len(dataId) <= 0 {
+		err = errors.New("[client.GetConfig]=>param dataId can not be empty")
 	}
-	err = util.CheckGroup(group)
-	if err != nil {
-		panic(err.Error())
+	if len(group) <= 0 {
+		err = errors.New("[client.GetConfig]=>param group can not be empty")
 	}
-	var response = &vo.ConfigResponse{}
-	response.SetDataId(dataId)
-	response.SetGroup(group)
-	response.SetTenant(client.NameSpace)
-
-	// 优先使用本地配置
-	contentTemp := getFailover(client.Agent.GetName(), dataId, group, response.GetTenant())
-	if contentTemp != nil {
-		response.SetContent(contentTemp.(string))
-		client.configFilterChainManager.DoFilter(nil, response)
-		content = response.GetContent()
-	} else {
-
+	var response *http.Response
+	if err == nil {
+		path := "http://" + client.ServerConfigs[0].IpAddr + ":" +
+			strconv.FormatUint(uint64(client.ServerConfigs[0].Port), 10) + "/nacos/v1/cs/configs?dataId=" + dataId +
+			"&group=" + group
+		if len(client.Tenant) > 0{
+			path +=  "&tenant=" + client.Tenant
+		}
+		log.Println("[client.GetConfig] request url :",path)
+		responseTmp, errGet := httpagent.Get(path, nil, uint64(client.ClientConfig.TimeoutMs))
+		if errGet != nil {
+			err = errGet
+		} else {
+			response = responseTmp
+		}
+	}
+	if err == nil {
+		bytes, errRead := ioutil.ReadAll(response.Body)
+		defer response.Body.Close()
+		if errRead != nil {
+			err = errRead
+		} else {
+			if response.StatusCode == 200 {
+				content = string(bytes)
+			} else {
+				err = errors.New(string(bytes))
+			}
+		}
 	}
 	return
 }
-
-func (client *ConfigClient) PublishConfig() {
-
+func (client *ConfigClient) PublishConfig(dataId string, group string, content string) (published bool, err error) {
+	return
 }
-
-func (client *ConfigClient) RemoveConfig() {
-
+func (client *ConfigClient) DeleteConfig(dataId string, group string) (deleted bool, err error) {
+	return
 }
-
-func (client *ConfigClient) GetServerStatus() (status string) {
+func (client *ConfigClient) ListenConfig() {
 
 }

@@ -10,14 +10,17 @@ package constant
 **/
 
 const (
-	KEY_ENDPOINT                  = "endpoint"
+	KEY_ENDPOINT                   = "endpoint"
 	KEY_NAME_SPACE                 = "namespace"
-	KEY_ACCESSS_KEY                = "accessKey"
+	KEY_ACCESS_KEY                 = "accessKey"
 	KEY_SECRET_KEY                 = "secretKey"
 	KEY_SERVER_ADDR                = "serverAddr"
 	KEY_CONTEXT_PATH               = "contextPath"
 	KEY_CLUSTER_NAME               = "clusterName"
 	KEY_ENCODE                     = "encode"
+	KEY_TENANT                     = "tenant"
+	KEY_TIMEOUT_MS                 = "timeoutMs"
+	KEY_SERVER_CONFIG              = "serverConfig"
 	KEY_NAMING_LOAD_CACHE_AT_START = "namingLoadCacheAtStart"
 
 	CLIENT_VERSION_HEADER = "Client-Version"
