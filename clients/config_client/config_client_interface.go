@@ -1,5 +1,7 @@
 package config_client
 
+import "nacos-go/vo"
+
 /**
 *
 * @description :
@@ -10,8 +12,8 @@ package config_client
 **/
 
 type IConfigClient interface {
-	GetConfig(dataId string, group string) (string, error)
-	PublishConfig(dataId string, group string, content string) (bool, error)
-	DeleteConfig(dataId string, group string) (bool, error)
+	GetConfig(param vo.ConfigParam) (string, error)
+	PublishConfig(param vo.ConfigParam) (bool, error)
+	DeleteConfig(param vo.ConfigParam) (bool, error)
 	ListenConfig()
 }
