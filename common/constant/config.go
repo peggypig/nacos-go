@@ -11,9 +11,10 @@ package constant
 
 type ServerConfig struct {
 	IpAddr string
-	Port   uint
+	Port   uint64
 }
 
 type ClientConfig struct {
-	TimeoutMs uint
+	TimeoutMs      uint64
+	ListenInterval uint64
 }

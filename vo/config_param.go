@@ -10,10 +10,10 @@ package vo
 **/
 
 type ConfigParam struct {
-	DataId  string
-	Group   string
-	Content string
-	Desc    string
-	AppName string
-	Tenant  string
+	DataId     string
+	Group      string
+	Content    string
+	Desc       string
+	AppName    string
+	Tenant     string
 }
