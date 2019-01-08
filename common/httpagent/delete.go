@@ -3,30 +3,22 @@ package httpagent
 import (
 	"log"
 	"net/http"
-	"strings"
 	"time"
 )
 
 /**
 *
-* @description :
+* @description : 
 *
 * @author : codezhang
 *
-* @create : 2019-01-07 15:13
+* @create : 2019-01-08 14:08
 **/
 
-func Post(path string, header http.Header, timeoutMs uint64, params map[string]string) (response *http.Response, err error) {
+func Delete(path string, header http.Header, timeoutMs uint64) (response *http.Response, err error) {
 	client := http.Client{}
 	client.Timeout = time.Millisecond * time.Duration(timeoutMs)
-	var body string
-	for key, value := range params {
-		if len(value) > 0 {
-			body += key + "=" + value + "&"
-		}
-	}
-	body = body[:len(body)-1]
-	request, errNew := http.NewRequest(http.MethodPost, path, strings.NewReader(body))
+	request, errNew := http.NewRequest(http.MethodDelete, path, nil)
 	if errNew != nil {
 		log.Println(errNew)
 		err = errNew
@@ -43,3 +35,4 @@ func Post(path string, header http.Header, timeoutMs uint64, params map[string]s
 	}
 	return
 }
+

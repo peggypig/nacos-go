@@ -53,3 +53,23 @@ func TestConfigClient_PublishConfig(t *testing.T) {
 		t.Log(content)
 	}
 }
+
+
+func TestConfigClient_DeleteConfig(t *testing.T) {
+	client := ConfigClient{
+		ServerConfigs:[]constant.ServerConfig{constant.ServerConfig{
+			IpAddr: "10.0.0.8",
+			Port:   8848,
+		},},
+	}
+	content, err := client.DeleteConfig(vo.ConfigParam{
+		DataId:"TEST",
+		Group:"DEFAULT_GROUP",
+		Tenant:"bbb",
+	})
+	if err != nil {
+		t.Error(err)
+	}else {
+		t.Log(content)
+	}
+}
