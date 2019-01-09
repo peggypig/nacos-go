@@ -70,7 +70,7 @@ func (client *ConfigClient) GetConfig(param vo.ConfigParam) (content string, err
 	var response *http.Response
 	if err == nil {
 		path := "http://" + client.ServerConfigs[0].IpAddr + ":" +
-			strconv.FormatUint(client.ServerConfigs[0].Port, 10) + constant.CONFIG_BASE_PATH + "?dataId=" + param.DataId +
+			strconv.FormatUint(client.ServerConfigs[0].Port, 10) + constant.CONFIG_PATH + "?dataId=" + param.DataId +
 			"&group=" + param.Group
 		if len(param.Tenant) > 0 {
 			path += "&tenant=" + param.Tenant
@@ -112,7 +112,7 @@ func (client *ConfigClient) PublishConfig(param vo.ConfigParam) (published bool,
 	var response *http.Response
 	if err == nil {
 		path := "http://" + client.ServerConfigs[0].IpAddr + ":" +
-			strconv.FormatUint(client.ServerConfigs[0].Port, 10) + constant.CONFIG_BASE_PATH
+			strconv.FormatUint(client.ServerConfigs[0].Port, 10) + constant.CONFIG_PATH
 		body := make(map[string]string)
 		body[constant.KEY_DATA_ID] = param.DataId
 		body[constant.KEY_GROUP] = param.Group
@@ -168,7 +168,7 @@ func (client *ConfigClient) DeleteConfig(param vo.ConfigParam) (deleted bool, er
 	var response *http.Response
 	if err == nil {
 		path := "http://" + client.ServerConfigs[0].IpAddr + ":" +
-			strconv.FormatUint(client.ServerConfigs[0].Port, 10) + constant.CONFIG_BASE_PATH + "?dataId=" + param.DataId +
+			strconv.FormatUint(client.ServerConfigs[0].Port, 10) + constant.CONFIG_PATH + "?dataId=" + param.DataId +
 			"&group=" + param.Group
 		if len(param.Tenant) > 0 {
 			path += "&tenant=" + param.Tenant
@@ -250,7 +250,7 @@ func (client *ConfigClient) listenTask() {
 			if errInner == nil {
 				// http 请求
 				path := "http://" + client.ServerConfigs[0].IpAddr + ":" +
-					strconv.FormatUint(client.ServerConfigs[0].Port, 10) + constant.CONFIG_LISTEN_BASE_PATH
+					strconv.FormatUint(client.ServerConfigs[0].Port, 10) + constant.CONFIG_LISTEN_PATH
 				body := make(map[string]string)
 				body[constant.KEY_LISTEN_CONFIGS] = listeningConfigs
 				header := map[string][]string{
