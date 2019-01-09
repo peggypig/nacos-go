@@ -3,7 +3,6 @@ package service_client
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"nacos-go/common/constant"
@@ -66,7 +65,7 @@ func (client *ServiceClient) RegisterServiceInstance(param vo.RegisterServiceIns
 			"Content-Type": {"application/x-www-form-urlencoded"},
 		}
 		log.Println("[client.PublishConfig] request url:", path, " ;body:", body, " ;header:", header)
-		responseTmp, errPost := httpagent.Put(path, header, client.ClientConfig.TimeoutMs, body)
+		responseTmp, errPost := httpagent.Post(path, header, client.ClientConfig.TimeoutMs, body)
 		if errPost != nil {
 			err = errPost
 		} else {
@@ -97,6 +96,54 @@ func (client *ServiceClient) RegisterServiceInstance(param vo.RegisterServiceIns
 
 // 注销服务实例
 func (client *ServiceClient) LogoutServiceInstance(param vo.LogoutServiceInstanceParam) (success bool, err error) {
+	if len(param.ServiceName) <= 0 {
+		err = errors.New("[client.GetServiceInstance] param.ServiceName can not be empty")
+	}
+	if err == nil && len(param.Ip) <= 0 {
+		err = errors.New("[client.GetServiceInstance] param.Ip can not be empty")
+	}
+	if err == nil && (param.Port <= 0 || param.Port > 65535) {
+		err = errors.New("[client.GetServiceInstance] param.Port invalid")
+	}
+	if err == nil && len(param.Cluster) <= 0 {
+		err = errors.New("[client.GetServiceInstance] param.Cluster can not be empty")
+	}
+	// 构造并完成http请求
+	var response *http.Response
+	if err == nil {
+		path := "http://" + client.ServerConfigs[0].IpAddr + ":" + strconv.FormatUint(client.ServerConfigs[0].Port, 10) +
+			constant.SERVICE_PATH + "?serviceName=" + param.ServiceName + "&ip=" + param.Ip + "&port=" +
+			strconv.FormatUint(param.Port, 10)
+		if len(param.Tenant) > 0 {
+			path += "&tenant=" + param.Tenant
+		}
+		log.Println("[client.PublishConfig] request url:", path)
+		responseTmp, errPost := httpagent.Delete(path, nil, client.ClientConfig.TimeoutMs)
+		if errPost != nil {
+			err = errPost
+		} else {
+			response = responseTmp
+		}
+	}
+	// response 解析
+	if err == nil {
+		bytes, errRead := ioutil.ReadAll(response.Body)
+		defer response.Body.Close()
+		if errRead != nil {
+			err = errRead
+		} else {
+			if response.StatusCode == 200 {
+				if strings.ToLower(strings.Trim(string(bytes), " ")) == "ok" {
+					success = true
+				} else {
+					success = false
+					err = errors.New(string(bytes))
+				}
+			} else {
+				err = errors.New("[" + strconv.Itoa(response.StatusCode) + "]" + string(bytes))
+			}
+		}
+	}
 	return
 }
 
@@ -200,7 +247,6 @@ func (client *ServiceClient) GetServiceInstance(param vo.GetServiceInstanceParam
 			err = errRead
 		} else {
 			if response.StatusCode == 200 {
-				fmt.Println(string(bytes))
 				errUnmarshal := json.Unmarshal(bytes, &serviceInstance)
 				if errUnmarshal != nil {
 					log.Println(errUnmarshal)

@@ -81,3 +81,28 @@ func TestServiceClient_GetServiceInstance(t *testing.T) {
 		t.Logf("%+v", service)
 	}
 }
+
+
+func TestServiceClient_LogoutServiceInstance(t *testing.T) {
+	client := ServiceClient{
+		ServerConfigs: []constant.ServerConfig{constant.ServerConfig{
+			IpAddr: "10.0.0.8",
+			Port:   8848,
+		}},
+		ClientConfig: constant.ClientConfig{
+			TimeoutMs: 30 * 1000,
+		},
+	}
+	service, err := client.LogoutServiceInstance(vo.LogoutServiceInstanceParam{
+		ServiceName: "demoservice",
+		Ip:          "10.0.0.10",
+		Port:        8848,
+		Cluster:     "a",
+	})
+	if err != nil {
+		t.Error(err)
+	} else {
+		t.Logf("%+v", service)
+	}
+}
+
