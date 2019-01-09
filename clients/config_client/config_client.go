@@ -62,10 +62,10 @@ func (client *ConfigClient) GetConfigContent(dataId string, group string) (conte
 
 func (client *ConfigClient) GetConfig(param vo.ConfigParam) (content string, err error) {
 	if len(param.DataId) <= 0 {
-		err = errors.New("[client.GetConfig]=>param.dataId can not be empty")
+		err = errors.New("[client.GetConfig] param.dataId can not be empty")
 	}
 	if len(param.Group) <= 0 {
-		err = errors.New("[client.GetConfig]=>param.group can not be empty")
+		err = errors.New("[client.GetConfig] param.group can not be empty")
 	}
 	var response *http.Response
 	if err == nil {
@@ -92,7 +92,7 @@ func (client *ConfigClient) GetConfig(param vo.ConfigParam) (content string, err
 			if response.StatusCode == 200 {
 				content = string(bytes)
 			} else {
-				err = errors.New("[" + strconv.Itoa(response.StatusCode) + "]" + string(bytes))
+				err = errors.New("[client.GetConfig] [" + strconv.Itoa(response.StatusCode) + "]" + string(bytes))
 			}
 		}
 	}
@@ -101,13 +101,13 @@ func (client *ConfigClient) GetConfig(param vo.ConfigParam) (content string, err
 
 func (client *ConfigClient) PublishConfig(param vo.ConfigParam) (published bool, err error) {
 	if len(param.DataId) <= 0 {
-		err = errors.New("[client.PublishConfig]=>param.dataId can not be empty")
+		err = errors.New("[client.PublishConfig] param.dataId can not be empty")
 	}
 	if len(param.Group) <= 0 {
-		err = errors.New("[client.PublishConfig]=>param.group can not be empty")
+		err = errors.New("[client.PublishConfig] param.group can not be empty")
 	}
 	if len(param.Content) <= 0 {
-		err = errors.New("[client.PublishConfig]=>param.content can not be empty")
+		err = errors.New("[client.PublishConfig] param.content can not be empty")
 	}
 	var response *http.Response
 	if err == nil {
@@ -148,10 +148,10 @@ func (client *ConfigClient) PublishConfig(param vo.ConfigParam) (published bool,
 					published = true
 				} else {
 					published = false
-					err = errors.New(string(bytes))
+					err = errors.New("[client.PublishConfig] " + string(bytes))
 				}
 			} else {
-				err = errors.New("[" + strconv.Itoa(response.StatusCode) + "]" + string(bytes))
+				err = errors.New("[client.PublishConfig] [" + strconv.Itoa(response.StatusCode) + "]" + string(bytes))
 			}
 		}
 	}
@@ -160,10 +160,10 @@ func (client *ConfigClient) PublishConfig(param vo.ConfigParam) (published bool,
 
 func (client *ConfigClient) DeleteConfig(param vo.ConfigParam) (deleted bool, err error) {
 	if len(param.DataId) <= 0 {
-		err = errors.New("[client.DeleteConfig]=>param.dataId can not be empty")
+		err = errors.New("[client.DeleteConfig] param.dataId can not be empty")
 	}
 	if len(param.Group) <= 0 {
-		err = errors.New("[client.DeleteConfig]=>param.group can not be empty")
+		err = errors.New("[client.DeleteConfig] param.group can not be empty")
 	}
 	var response *http.Response
 	if err == nil {
@@ -192,10 +192,10 @@ func (client *ConfigClient) DeleteConfig(param vo.ConfigParam) (deleted bool, er
 					deleted = true
 				} else {
 					deleted = false
-					err = errors.New(string(bytes))
+					err = errors.New("[client.DeleteConfig] " + string(bytes))
 				}
 			} else {
-				err = errors.New("[" + strconv.Itoa(response.StatusCode) + "]" + string(bytes))
+				err = errors.New("[client.DeleteConfig] [" + strconv.Itoa(response.StatusCode) + "]" + string(bytes))
 			}
 		}
 	}
@@ -206,7 +206,7 @@ func (client *ConfigClient) ListenConfig(params []vo.ConfigParam) (err error) {
 	client.mutex.Lock()
 	defer client.mutex.Unlock()
 	if client.listening {
-		err = errors.New("client is listening,do not operator repeat")
+		err = errors.New("[client.ListenConfig] client is listening,do not operator repeat")
 	}
 	// 监听
 	if err == nil {
@@ -327,7 +327,7 @@ func (client *ConfigClient) updateLocalConfig(changed string) {
 		}
 	}
 	log.Println("[client.updateLocalConfig] update config complete")
-	log.Println("[client.localConfig]:", client.localConfigs)
+	log.Println("[client.localConfig] ", client.localConfigs)
 }
 
 func (client *ConfigClient) putLocalConfig(config vo.ConfigParam) {
