@@ -5,12 +5,15 @@ import (
 	"errors"
 	"io/ioutil"
 	"log"
+	"nacos-go/clients/nacos_client"
 	"nacos-go/common/constant"
 	"nacos-go/common/httpagent"
 	"nacos-go/vo"
 	"net/http"
 	"strconv"
 	"strings"
+	"sync"
+	"time"
 )
 
 /**
@@ -23,8 +26,23 @@ import (
 **/
 
 type ServiceClient struct {
-	ServerConfigs []constant.ServerConfig
-	ClientConfig  constant.ClientConfig
+	nacos_client.INacosClient
+	beating bool
+	mutex   sync.Mutex
+}
+// 获取参数配置
+func (client *ServiceClient) syncConfig() (clientConfig constant.ClientConfig, serverConfigs []constant.ServerConfig, err error) {
+	clientConfig, err = client.GetClientConfig()
+	if err != nil {
+		log.Println(err, ";do you call client.SetClientConfig()?")
+	}
+	if err == nil {
+		serverConfigs, err = client.GetServerConfig()
+		if err != nil {
+			log.Println(err, ";do you call client.SetServerConfig()?")
+		}
+	}
+	return
 }
 
 // 注册服务实例
@@ -38,10 +56,15 @@ func (client *ServiceClient) RegisterServiceInstance(param vo.RegisterServiceIns
 	if err == nil && len(param.ServiceName) <= 0 {
 		err = errors.New("[client.RegisterServiceInstance] param.ServiceName can not be empty")
 	}
+	var clientConfig constant.ClientConfig
+	var serverConfigs []constant.ServerConfig
+	if err == nil {
+		clientConfig, serverConfigs, err = client.syncConfig()
+	}
 	// 构造并完成http请求
 	var response *http.Response
 	if err == nil {
-		path := "http://" + client.ServerConfigs[0].IpAddr + ":" + strconv.FormatUint(client.ServerConfigs[0].Port, 10) +
+		path := "http://" + serverConfigs[0].IpAddr + ":" + strconv.FormatUint(serverConfigs[0].Port, 10) +
 			constant.SERVICE_PATH
 		body := make(map[string]string)
 		body[constant.KEY_SERVICE_NAME] = param.ServiceName
@@ -59,13 +82,14 @@ func (client *ServiceClient) RegisterServiceInstance(param vo.RegisterServiceIns
 			body[constant.KEY_WEIGHT] = strconv.FormatFloat(param.Weight, 'f', -1, 64)
 		}
 		if len(param.Metadata) > 0 {
-			body[constant.KEY_METADATA] = param.Metadata
+			metadataBytes, _ := json.Marshal(param.Metadata)
+			body[constant.KEY_METADATA] = string(metadataBytes)
 		}
 		header := map[string][]string{
 			"Content-Type": {"application/x-www-form-urlencoded"},
 		}
 		log.Println("[client.RegisterServiceInstance] request url:", path, " ;body:", body, " ;header:", header)
-		responseTmp, errPost := httpagent.Post(path, header, client.ClientConfig.TimeoutMs, body)
+		responseTmp, errPost := httpagent.Post(path, header, clientConfig.TimeoutMs, body)
 		if errPost != nil {
 			err = errPost
 		} else {
@@ -108,17 +132,22 @@ func (client *ServiceClient) LogoutServiceInstance(param vo.LogoutServiceInstanc
 	if err == nil && len(param.Cluster) <= 0 {
 		err = errors.New("[client.LogoutServiceInstance] param.Cluster can not be empty")
 	}
+	var clientConfig constant.ClientConfig
+	var serverConfigs []constant.ServerConfig
+	if err == nil {
+		clientConfig, serverConfigs, err = client.syncConfig()
+	}
 	// 构造并完成http请求
 	var response *http.Response
 	if err == nil {
-		path := "http://" + client.ServerConfigs[0].IpAddr + ":" + strconv.FormatUint(client.ServerConfigs[0].Port, 10) +
+		path := "http://" + serverConfigs[0].IpAddr + ":" + strconv.FormatUint(serverConfigs[0].Port, 10) +
 			constant.SERVICE_PATH + "?serviceName=" + param.ServiceName + "&ip=" + param.Ip + "&port=" +
 			strconv.FormatUint(param.Port, 10)
 		if len(param.Tenant) > 0 {
 			path += "&tenant=" + param.Tenant
 		}
 		log.Println("[client.LogoutServiceInstance] request url:", path)
-		responseTmp, errPost := httpagent.Delete(path, nil, client.ClientConfig.TimeoutMs)
+		responseTmp, errPost := httpagent.Delete(path, nil, clientConfig.TimeoutMs)
 		if errPost != nil {
 			err = errPost
 		} else {
@@ -161,10 +190,15 @@ func (client *ServiceClient) ModifyServiceInstance(param vo.ModifyServiceInstanc
 	if err == nil && len(param.Cluster) <= 0 {
 		err = errors.New("[client.ModifyServiceInstance] param.Cluster can not be empty")
 	}
+	var clientConfig constant.ClientConfig
+	var serverConfigs []constant.ServerConfig
+	if err == nil {
+		clientConfig, serverConfigs, err = client.syncConfig()
+	}
 	// 构造并完成http请求
 	var response *http.Response
 	if err == nil {
-		path := "http://" + client.ServerConfigs[0].IpAddr + ":" + strconv.FormatUint(client.ServerConfigs[0].Port, 10) +
+		path := "http://" + serverConfigs[0].IpAddr + ":" + strconv.FormatUint(serverConfigs[0].Port, 10) +
 			constant.SERVICE_PATH + "/update"
 		body := make(map[string]string)
 		body[constant.KEY_SERVICE_NAME] = param.ServiceName
@@ -177,13 +211,14 @@ func (client *ServiceClient) ModifyServiceInstance(param vo.ModifyServiceInstanc
 			body[constant.KEY_WEIGHT] = strconv.FormatFloat(param.Weight, 'f', -1, 64)
 		}
 		if len(param.Metadata) > 0 {
-			body[constant.KEY_METADATA] = param.Metadata
+			metadataBytes, _ := json.Marshal(param.Metadata)
+			body[constant.KEY_METADATA] = string(metadataBytes)
 		}
 		header := map[string][]string{
 			"Content-Type": {"application/x-www-form-urlencoded"},
 		}
 		log.Println("[client.ModifyServiceInstance] request url:", path, " ;body:", body, " ;header:", header)
-		responseTmp, errPost := httpagent.Put(path, header, client.ClientConfig.TimeoutMs, body)
+		responseTmp, errPost := httpagent.Put(path, header, clientConfig.TimeoutMs, body)
 		if errPost != nil {
 			err = errPost
 		} else {
@@ -217,10 +252,15 @@ func (client *ServiceClient) GetService(param vo.GetServiceParam) (service vo.Se
 	if len(param.ServiceName) <= 0 {
 		err = errors.New("[client.GetService] param.ServiceName can not be empty")
 	}
+	var clientConfig constant.ClientConfig
+	var serverConfigs []constant.ServerConfig
+	if err == nil {
+		clientConfig, serverConfigs, err = client.syncConfig()
+	}
 	// 构造并完成http请求
 	var response *http.Response
 	if err == nil {
-		path := "http://" + client.ServerConfigs[0].IpAddr + ":" + strconv.FormatUint(client.ServerConfigs[0].Port, 10) +
+		path := "http://" + serverConfigs[0].IpAddr + ":" + strconv.FormatUint(serverConfigs[0].Port, 10) +
 			constant.SERVICE_PATH + "/list?serviceName=" + param.ServiceName
 		if len(param.Tenant) > 0 {
 			path += "&tenant=" + param.Tenant
@@ -240,7 +280,7 @@ func (client *ServiceClient) GetService(param vo.GetServiceParam) (service vo.Se
 			}
 		}
 		log.Println("[client.GetService] request url:", path)
-		responseTmp, errPost := httpagent.Get(path, nil, client.ClientConfig.TimeoutMs)
+		responseTmp, errPost := httpagent.Get(path, nil, clientConfig.TimeoutMs)
 		if errPost != nil {
 			err = errPost
 		} else {
@@ -279,10 +319,15 @@ func (client *ServiceClient) GetServiceInstance(param vo.GetServiceInstanceParam
 	if err == nil && (param.Port <= 0 || param.Port > 65535) {
 		err = errors.New("[client.GetServiceInstance] param.Port invalid")
 	}
+	var clientConfig constant.ClientConfig
+	var serverConfigs []constant.ServerConfig
+	if err == nil {
+		clientConfig, serverConfigs, err = client.syncConfig()
+	}
 	// 构造并完成http请求
 	var response *http.Response
 	if err == nil {
-		path := "http://" + client.ServerConfigs[0].IpAddr + ":" + strconv.FormatUint(client.ServerConfigs[0].Port, 10) +
+		path := "http://" + serverConfigs[0].IpAddr + ":" + strconv.FormatUint(serverConfigs[0].Port, 10) +
 			constant.SERVICE_PATH + "?serviceName=" + param.ServiceName + "&ip=" + param.Ip + "&port=" +
 			strconv.FormatUint(param.Port, 10) + "&healthyOnly" + strconv.FormatBool(param.HealthyOnly)
 		if len(param.Tenant) > 0 {
@@ -292,7 +337,7 @@ func (client *ServiceClient) GetServiceInstance(param vo.GetServiceInstanceParam
 			path += "&cluster=" + param.Cluster
 		}
 		log.Println("[client.GetServiceInstance] request url:", path)
-		responseTmp, errPost := httpagent.Get(path, nil, client.ClientConfig.TimeoutMs)
+		responseTmp, errPost := httpagent.Get(path, nil, clientConfig.TimeoutMs)
 		if errPost != nil {
 			err = errPost
 		} else {
@@ -314,6 +359,148 @@ func (client *ServiceClient) GetServiceInstance(param vo.GetServiceInstanceParam
 				}
 			} else {
 				err = errors.New("[client.GetServiceInstance] [" + strconv.Itoa(response.StatusCode) + "]" + string(bytes))
+			}
+		}
+	}
+	return
+}
+
+// 开始发送心跳的任务  只有在service.healthCheckMode = client的情况下才有效
+func (client *ServiceClient) StartBeatTask(param vo.BeatTaskParam) (err error) {
+	client.mutex.Lock()
+	defer client.mutex.Unlock()
+	if client.beating {
+		err = errors.New("[client.StartBeatTask] client is beating,do not operator repeat")
+	}
+	// 开启任务
+	if err == nil {
+		client.startBeatTask(param)
+	}
+	return
+}
+
+func (client *ServiceClient) startBeatTask(param vo.BeatTaskParam) {
+	go func() {
+		for {
+			clientConfig, serverConfigs, errInner := client.syncConfig()
+			// 心跳参数检查
+			if errInner == nil {
+				if len(param.Ip) <= 0 {
+					errInner = errors.New("[client.StartBeatTask] param.Ip can not be empty")
+				}
+				if errInner == nil && len(param.Dom) <= 0 {
+					errInner = errors.New("[client.StartBeatTask] param.Dom can not be empty")
+				}
+			}
+			if errInner != nil {
+				log.Println("client.StartBeatTask failed")
+				break
+			}
+			// 检查service的健康检查模式
+			if errInner == nil {
+				serviceDetail, err := client.GetServiceDetail(vo.GetServiceDetailParam{
+					ServiceName: param.Dom,
+				})
+				if err != nil {
+					log.Println(err)
+				}
+				if serviceDetail.Service.HealthCheckMode != "client" {
+					log.Println("[client.StartBeatTask] service.HealthCheckMode != 'client',sending a heartbeat is invalid")
+				}
+			}
+			// 创建计时器
+			var timer *time.Timer
+			if errInner == nil {
+				timer = time.NewTimer(time.Duration(clientConfig.BeatInterval) * time.Millisecond)
+			}
+			// http 请求
+			if errInner == nil {
+				path := "http://" + serverConfigs[0].IpAddr + ":" +
+					strconv.FormatUint(serverConfigs[0].Port, 10) + constant.SERVICE_BASE_PATH + "/api/clientBeat"
+				body := make(map[string]string)
+				body[constant.KEY_DOM] = param.Dom
+				paramBytes, errMarshal := json.Marshal(param)
+				if errMarshal != nil {
+					log.Println(errMarshal)
+					continue
+				}
+				body[constant.KEY_BEAT] = string(paramBytes)
+				header := map[string][]string{
+					"Content-Type": {"application/x-www-form-urlencoded"},
+				}
+				log.Println("[client.StartBeatTask] request url:", path, " ;body:", body, " ;header:", header)
+				response, errPost := httpagent.Post(path, header, clientConfig.TimeoutMs, body)
+				if errPost != nil {
+					log.Println(errPost)
+					continue
+				}
+				bytes, errRead := ioutil.ReadAll(response.Body)
+				if errRead != nil {
+					log.Println(errRead)
+					continue
+				} else {
+					if response.StatusCode == 200 {
+						log.Print("[client.StartBeatTask] send beat success:" + string(bytes))
+					} else {
+						log.Println("[client.StartBeatTask] send beat failed:[" + strconv.Itoa(response.StatusCode) + "]" + string(bytes))
+					}
+					_ = response.Body.Close()
+				}
+				client.beating = true
+			}
+			if !client.beating {
+				break
+			}
+			<-timer.C
+		}
+	}()
+}
+
+// 停止发送心跳的任务
+func (client *ServiceClient) StopBeatTask() {
+	client.mutex.Lock()
+	defer client.mutex.Unlock()
+	client.beating = false
+	log.Println("[client.StopBeatTask] client stop beating success")
+}
+
+func (client *ServiceClient) GetServiceDetail(param vo.GetServiceDetailParam) (serviceDetail vo.ServiceDetail, err error) {
+	if len(param.ServiceName) <= 0 {
+		err = errors.New("[client.GetServiceInfo] param.ServiceName can not be empty")
+	}
+	var clientConfig constant.ClientConfig
+	var serverConfigs []constant.ServerConfig
+	if err == nil {
+		clientConfig, serverConfigs, err = client.syncConfig()
+	}
+	// 构造并完成http请求
+	var response *http.Response
+	if err == nil {
+		path := "http://" + serverConfigs[0].IpAddr + ":" + strconv.FormatUint(serverConfigs[0].Port, 10) +
+			constant.SERVICE_BASE_PATH + "/catalog/serviceDetail?serviceName=" + param.ServiceName
+		log.Println("[client.GetServiceInfo] request url:", path)
+		responseTmp, errPost := httpagent.Get(path, nil, clientConfig.TimeoutMs)
+		if errPost != nil {
+			err = errPost
+		} else {
+			response = responseTmp
+		}
+	}
+	// response 解析
+	if err == nil {
+		bytes, errRead := ioutil.ReadAll(response.Body)
+		defer response.Body.Close()
+		if errRead != nil {
+			err = errRead
+		} else {
+			if response.StatusCode == 200 {
+				errUnmarshal := json.Unmarshal(bytes, &serviceDetail)
+				if errUnmarshal != nil {
+					log.Println(errUnmarshal)
+					err = errors.New("[client.GetServiceInfo] " + string(bytes))
+				}
+			} else {
+				err = errors.New("[client.GetServiceInfo] [" + strconv.Itoa(response.StatusCode) + "]" + string(bytes))
 			}
 		}
 	}

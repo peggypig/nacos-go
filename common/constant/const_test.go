@@ -20,3 +20,10 @@ func TestChar(t *testing.T)  {
 	fmt.Println("bbb")
 	fmt.Println("b"+string(rune(1))+"b")
 }
+
+func TestMapLen(t  *testing.T)  {
+	var metaData = make(map[string]string)
+	fmt.Println(len(metaData))
+	metaData["a"] = "a"
+	fmt.Println(len(metaData))
+}

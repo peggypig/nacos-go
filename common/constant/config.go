@@ -17,4 +17,5 @@ type ServerConfig struct {
 type ClientConfig struct {
 	TimeoutMs      uint64
 	ListenInterval uint64
+	BeatInterval   uint64
 }

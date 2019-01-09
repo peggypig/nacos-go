@@ -1,9 +1,11 @@
 package service_client
 
 import (
+	"nacos-go/clients/nacos_client"
 	"nacos-go/common/constant"
 	"nacos-go/vo"
 	"testing"
+	"time"
 )
 
 /**
@@ -16,15 +18,15 @@ import (
 **/
 
 func TestServiceClient_RegisterServiceInstance(t *testing.T) {
-	client := ServiceClient{
-		ServerConfigs: []constant.ServerConfig{constant.ServerConfig{
-			IpAddr: "10.0.0.8",
-			Port:   8848,
-		}},
-		ClientConfig: constant.ClientConfig{
-			TimeoutMs: 30 * 1000,
-		},
-	}
+	client := ServiceClient{}
+	client.INacosClient = &nacos_client.NacosClient{}
+	_ = client.SetClientConfig(constant.ClientConfig{
+		TimeoutMs: 30 * 1000,
+	})
+	_ = client.SetServerConfig([]constant.ServerConfig{constant.ServerConfig{
+		IpAddr: "10.0.0.8",
+		Port:   8848,
+	}})
 	success, err := client.RegisterServiceInstance(vo.RegisterServiceInstanceParam{
 		Ip:          "10.0.0.10",
 		Port:        8848,
@@ -40,15 +42,15 @@ func TestServiceClient_RegisterServiceInstance(t *testing.T) {
 }
 
 func TestServiceClient_ModifyServiceInstance(t *testing.T) {
-	client := ServiceClient{
-		ServerConfigs: []constant.ServerConfig{constant.ServerConfig{
-			IpAddr: "10.0.0.8",
-			Port:   8848,
-		}},
-		ClientConfig: constant.ClientConfig{
-			TimeoutMs: 30 * 1000,
-		},
-	}
+	client := ServiceClient{}
+	client.INacosClient = &nacos_client.NacosClient{}
+	_ = client.SetServerConfig([]constant.ServerConfig{constant.ServerConfig{
+		IpAddr: "10.0.0.8",
+		Port:   8848,
+	}})
+	_ = client.SetClientConfig(constant.ClientConfig{
+		TimeoutMs: 30 * 1000,
+	})
 	success, err := client.RegisterServiceInstance(vo.RegisterServiceInstanceParam{
 		Ip:          "10.0.0.10",
 		Port:        8848,
@@ -64,15 +66,15 @@ func TestServiceClient_ModifyServiceInstance(t *testing.T) {
 }
 
 func TestServiceClient_GetService(t *testing.T) {
-	client := ServiceClient{
-		ServerConfigs: []constant.ServerConfig{constant.ServerConfig{
-			IpAddr: "10.0.0.8",
-			Port:   8848,
-		}},
-		ClientConfig: constant.ClientConfig{
-			TimeoutMs: 30 * 1000,
-		},
-	}
+	client := ServiceClient{}
+	client.INacosClient = &nacos_client.NacosClient{}
+	_ = client.SetServerConfig([]constant.ServerConfig{constant.ServerConfig{
+		IpAddr: "10.0.0.8",
+		Port:   8848,
+	}})
+	_ = client.SetClientConfig(constant.ClientConfig{
+		TimeoutMs: 30 * 1000,
+	})
 	service, err := client.GetService(vo.GetServiceParam{
 		ServiceName: "demoservice",
 	})
@@ -84,15 +86,15 @@ func TestServiceClient_GetService(t *testing.T) {
 }
 
 func TestServiceClient_GetServiceInstance(t *testing.T) {
-	client := ServiceClient{
-		ServerConfigs: []constant.ServerConfig{constant.ServerConfig{
-			IpAddr: "10.0.0.8",
-			Port:   8848,
-		}},
-		ClientConfig: constant.ClientConfig{
-			TimeoutMs: 30 * 1000,
-		},
-	}
+	client := ServiceClient{}
+	client.INacosClient = &nacos_client.NacosClient{}
+	_ = client.SetServerConfig([]constant.ServerConfig{constant.ServerConfig{
+		IpAddr: "10.0.0.8",
+		Port:   8848,
+	}})
+	_ = client.SetClientConfig(constant.ClientConfig{
+		TimeoutMs: 30 * 1000,
+	})
 	service, err := client.GetServiceInstance(vo.GetServiceInstanceParam{
 		ServiceName: "demoservice",
 		Ip:          "10.0.0.10",
@@ -106,17 +108,16 @@ func TestServiceClient_GetServiceInstance(t *testing.T) {
 	}
 }
 
-
 func TestServiceClient_LogoutServiceInstance(t *testing.T) {
-	client := ServiceClient{
-		ServerConfigs: []constant.ServerConfig{constant.ServerConfig{
-			IpAddr: "10.0.0.8",
-			Port:   8848,
-		}},
-		ClientConfig: constant.ClientConfig{
-			TimeoutMs: 30 * 1000,
-		},
-	}
+	client := ServiceClient{}
+	client.INacosClient = &nacos_client.NacosClient{}
+	_ = client.SetServerConfig([]constant.ServerConfig{constant.ServerConfig{
+		IpAddr: "10.0.0.8",
+		Port:   8848,
+	}})
+	_ = client.SetClientConfig(constant.ClientConfig{
+		TimeoutMs: 30 * 1000,
+	})
 	service, err := client.LogoutServiceInstance(vo.LogoutServiceInstanceParam{
 		ServiceName: "demoservice",
 		Ip:          "10.0.0.10",
@@ -130,3 +131,46 @@ func TestServiceClient_LogoutServiceInstance(t *testing.T) {
 	}
 }
 
+func TestServiceClient_StartBeatTask(t *testing.T) {
+	client := ServiceClient{}
+	client.INacosClient = &nacos_client.NacosClient{}
+	_ = client.SetServerConfig([]constant.ServerConfig{constant.ServerConfig{
+		IpAddr: "10.0.0.8",
+		Port:   8848,
+	}})
+	_ = client.SetClientConfig(constant.ClientConfig{
+		TimeoutMs:    30 * 1000,
+		BeatInterval: 2 * 1000,
+	})
+	err := client.StartBeatTask(vo.BeatTaskParam{
+		Ip: "10.0.0.10",
+		//Port:    8848,
+		//Cluster: "a",
+		Dom: "demoservice",
+	})
+	if err != nil {
+		t.Error(err)
+	}
+	time.Sleep(100 * time.Second)
+}
+
+func TestServiceClient_GetServiceInfo(t *testing.T) {
+	client := ServiceClient{}
+	client.INacosClient = &nacos_client.NacosClient{}
+	_ = client.SetServerConfig([]constant.ServerConfig{constant.ServerConfig{
+		IpAddr: "10.0.0.8",
+		Port:   8848,
+	}})
+	_ = client.SetClientConfig(constant.ClientConfig{
+		TimeoutMs:    30 * 1000,
+		BeatInterval: 2 * 1000,
+	})
+	info, err := client.GetServiceDetail(vo.GetServiceDetailParam{
+		ServiceName: "demoservice",
+	})
+	if err != nil {
+		t.Error(err)
+	} else {
+		t.Logf("%+v", info)
+	}
+}

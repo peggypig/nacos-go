@@ -1,6 +1,7 @@
 package config_client
 
 import (
+	"nacos-go/clients/nacos_client"
 	"nacos-go/common/constant"
 	"nacos-go/vo"
 	"testing"
@@ -17,12 +18,16 @@ import (
 **/
 
 func TestConfigClient_GetConfig(t *testing.T) {
-	client := ConfigClient{
-		ServerConfigs: []constant.ServerConfig{constant.ServerConfig{
-			IpAddr: "console.nacos.io",
-			Port:   80,
-		}},
-	}
+	client := ConfigClient{}
+	client.INacosClient = &nacos_client.NacosClient{}
+	_ = client.SetServerConfig([]constant.ServerConfig{constant.ServerConfig{
+		IpAddr: "console.nacos.io",
+		Port:   80,
+	}})
+	_ = client.SetClientConfig(constant.ClientConfig{
+		TimeoutMs:      30 * 1000,
+		ListenInterval: 10 * 1000,
+	})
 	content, err := client.GetConfig(vo.ConfigParam{
 		DataId: "TEST",
 		Group:  "DEFAULT_GROUP",
@@ -36,12 +41,16 @@ func TestConfigClient_GetConfig(t *testing.T) {
 }
 
 func TestConfigClient_PublishConfig(t *testing.T) {
-	client := ConfigClient{
-		ServerConfigs: []constant.ServerConfig{constant.ServerConfig{
-			IpAddr: "console.nacos.io",
-			Port:   80,
-		}},
-	}
+	client := ConfigClient{}
+	client.INacosClient = &nacos_client.NacosClient{}
+	_ = client.SetServerConfig([]constant.ServerConfig{constant.ServerConfig{
+		IpAddr: "console.nacos.io",
+		Port:   80,
+	}})
+	_ = client.SetClientConfig(constant.ClientConfig{
+		TimeoutMs:      30 * 1000,
+		ListenInterval: 10 * 1000,
+	})
 	content, err := client.PublishConfig(vo.ConfigParam{
 		DataId:  "TEST",
 		Group:   "DEFAULT_GROUP",
@@ -56,12 +65,16 @@ func TestConfigClient_PublishConfig(t *testing.T) {
 }
 
 func TestConfigClient_DeleteConfig(t *testing.T) {
-	client := ConfigClient{
-		ServerConfigs: []constant.ServerConfig{constant.ServerConfig{
-			IpAddr: "console.nacos.io",
-			Port:   80,
-		}},
-	}
+	client := ConfigClient{}
+	client.INacosClient = &nacos_client.NacosClient{}
+	_ = client.SetServerConfig([]constant.ServerConfig{constant.ServerConfig{
+		IpAddr: "console.nacos.io",
+		Port:   80,
+	}})
+	_ = client.SetClientConfig(constant.ClientConfig{
+		TimeoutMs:      30 * 1000,
+		ListenInterval: 10 * 1000,
+	})
 	content, err := client.DeleteConfig(vo.ConfigParam{
 		DataId: "TEST",
 		Group:  "DEFAULT_GROUP",
@@ -75,16 +88,16 @@ func TestConfigClient_DeleteConfig(t *testing.T) {
 }
 
 func TestConfigClient_ListenConfig(t *testing.T) {
-	client := ConfigClient{
-		ServerConfigs: []constant.ServerConfig{constant.ServerConfig{
-			IpAddr: "console.nacos.io",
-			Port:   80,
-		}},
-		ClientConfig: constant.ClientConfig{
-			TimeoutMs:      30 * 1000,
-			ListenInterval: 10 * 1000,
-		},
-	}
+	client := ConfigClient{}
+	client.INacosClient = &nacos_client.NacosClient{}
+	_ = client.SetClientConfig(constant.ClientConfig{
+		TimeoutMs:      30 * 1000,
+		ListenInterval: 10 * 1000,
+	})
+	_ = client.SetServerConfig([]constant.ServerConfig{constant.ServerConfig{
+		IpAddr: "console.nacos.io",
+		Port:   80,
+	}})
 	err := client.ListenConfig([]vo.ConfigParam{{
 		DataId: "TESTa",
 		Group:  "TEST",
@@ -100,16 +113,16 @@ func TestConfigClient_ListenConfig(t *testing.T) {
 }
 
 func TestConfigClient_GetConfigContent(t *testing.T) {
-	client := ConfigClient{
-		ServerConfigs: []constant.ServerConfig{constant.ServerConfig{
-			IpAddr: "console.nacos.io",
-			Port:   80,
-		}},
-		ClientConfig: constant.ClientConfig{
-			TimeoutMs:      30 * 1000,
-			ListenInterval: 10 * 1000,
-		},
-	}
+	client := ConfigClient{}
+	client.INacosClient = &nacos_client.NacosClient{}
+	_ = client.SetClientConfig(constant.ClientConfig{
+		TimeoutMs:      30 * 1000,
+		ListenInterval: 10 * 1000,
+	})
+	_ = client.SetServerConfig([]constant.ServerConfig{constant.ServerConfig{
+		IpAddr: "console.nacos.io",
+		Port:   80,
+	}})
 	content , err := client.GetConfigContent("TEST","TEST1")
 	if err != nil {
 		t.Error(err)

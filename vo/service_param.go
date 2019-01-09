@@ -16,7 +16,7 @@ type RegisterServiceInstanceParam struct {
 	Weight      float64
 	Enable      bool
 	Healthy     bool
-	Metadata    string
+	Metadata    map[string]string
 	ClusterName string
 	ServiceName string
 }
@@ -36,7 +36,7 @@ type ModifyServiceInstanceParam struct {
 	Cluster     string
 	Tenant      string
 	Weight      float64
-	Metadata    string
+	Metadata    map[string]string
 }
 
 type GetServiceParam struct {
@@ -53,4 +53,17 @@ type GetServiceInstanceParam struct {
 	ServiceName string
 	Ip          string
 	Port        uint64
+}
+
+type BeatTaskParam struct {
+	Ip       string            `json:"ip"`
+	Port     uint64            `json:"port"`
+	Weight   float64           `json:"weight"`
+	Dom      string            `json:"dom"` // Dom == ServiceName
+	Cluster  string            `json:"cluster"`
+	MetaData map[string]string `json:"metaData"`
+}
+
+type GetServiceDetailParam struct {
+	ServiceName string
 }
