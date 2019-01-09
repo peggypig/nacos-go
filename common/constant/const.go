@@ -16,7 +16,6 @@ const (
 	KEY_SECRET_KEY      = "secretKey"
 	KEY_SERVER_ADDR     = "serverAddr"
 	KEY_CONTEXT_PATH    = "contextPath"
-	KEY_CLUSTER_NAME    = "clusterName"
 	KEY_ENCODE          = "encode"
 	KEY_DATA_ID         = "dataId"
 	KEY_GROUP           = "group"
@@ -35,4 +34,13 @@ const (
 	SPLIT_CONFIG        = string(rune(1))
 	SPLIT_CONFIG_INNER  = string(rune(2))
 	KEY_LISTEN_CONFIGS  = "Listening-Configs"
+
+	KEY_SERVICE_NAME = "serviceName"
+	KEY_IP           = "ip"
+	KEY_PORT         = "port"
+	KEY_WEIGHT       = "weight"
+	KEY_ENABLE       = "enable"
+	KEY_HEALTHY      = "healthy"
+	KEY_METADATA     = "metadata"
+	KEY_CLUSTER_NAME = "clusterName"
 )

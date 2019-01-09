@@ -49,6 +49,8 @@ type GetServiceParam struct {
 type GetServiceInstanceParam struct {
 	Tenant      string
 	HealthyOnly bool
-	Clusters    []string
+	Cluster     string
 	ServiceName string
+	Ip          string
+	Port        uint64
 }
