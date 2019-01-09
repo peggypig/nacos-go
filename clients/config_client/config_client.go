@@ -50,7 +50,7 @@ func (client *ConfigClient) GetConfigContent(dataId string, group string) (conte
 				break
 			}
 		}
-		if !exist {
+		if !exist || len(content) <= 0 {
 			content, err = client.GetConfig(vo.ConfigParam{
 				DataId: dataId,
 				Group:  group,
