@@ -25,7 +25,7 @@ const (
 	KEY_CONTENT         = "content"
 	KEY_TIMEOUT_MS      = "timeoutMs"
 	KEY_LISTEN_INTERVAL = "listenInterval"
-	KEY_SERVER_CONFIGS   = "serverConfigs"
+	KEY_SERVER_CONFIGS  = "serverConfigs"
 	KEY_CLIENT_CONFIG   = "clientConfig"
 	CONFIG_BASE_PATH    = "/nacos/v1/cs"
 	CONFIG_PATH         = CONFIG_BASE_PATH + "/configs"

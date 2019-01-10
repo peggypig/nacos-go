@@ -1,4 +1,4 @@
-package httpagent
+package http_agent
 
 import (
 	"log"
@@ -16,7 +16,7 @@ import (
 * @create : 2019-01-07 15:13
 **/
 
-func Post(path string, header http.Header, timeoutMs uint64, params map[string]string) (response *http.Response, err error) {
+func post(path string, header http.Header, timeoutMs uint64, params map[string]string) (response *http.Response, err error) {
 	client := http.Client{}
 	client.Timeout = time.Millisecond * time.Duration(timeoutMs)
 	var body string

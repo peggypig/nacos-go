@@ -1,6 +1,8 @@
 package config_client
 
-import "nacos-go/vo"
+import (
+	"nacos-go/vo"
+)
 
 /**
 *
@@ -10,6 +12,8 @@ import "nacos-go/vo"
 *
 * @create : 2019-01-08 10:03
 **/
+
+//go:generate mockgen -destination mock_config_client_interface.go -package config_client nacos-go/clients/config_client IConfigClient
 
 type IConfigClient interface {
 	// 获取配置
@@ -44,5 +48,5 @@ type IConfigClient interface {
 	// dataId  require
 	// group   require
 	// 先从本地监听的配置中获取，没有则从服务器上获取
-	GetConfigContent(dataId string,groupId string)(string,error)
+	GetConfigContent(dataId string, groupId string) (string, error)
 }

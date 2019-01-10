@@ -3,6 +3,7 @@ package nacos_client
 import (
 	"errors"
 	"nacos-go/common/constant"
+	"nacos-go/common/http_agent"
 	"strconv"
 )
 
@@ -18,6 +19,7 @@ import (
 type NacosClient struct {
 	clientConfigValid  bool
 	serverConfigsValid bool
+	agent              http_agent.IHttpAgent
 	clientConfig       constant.ClientConfig
 	serverConfigs      []constant.ServerConfig
 }
@@ -44,6 +46,7 @@ func (client *NacosClient) SetClientConfig(config constant.ClientConfig) (err er
 	}
 	return
 }
+
 // 设置 serverConfigs
 func (client *NacosClient) SetServerConfig(configs []constant.ServerConfig) (err error) {
 	if len(configs) <= 0 {
@@ -63,6 +66,7 @@ func (client *NacosClient) SetServerConfig(configs []constant.ServerConfig) (err
 	}
 	return
 }
+
 // 获取 clientConfig
 func (client *NacosClient) GetClientConfig() (config constant.ClientConfig, err error) {
 	config = client.clientConfig
@@ -71,6 +75,7 @@ func (client *NacosClient) GetClientConfig() (config constant.ClientConfig, err 
 	}
 	return
 }
+
 // 获取serverConfigs
 func (client *NacosClient) GetServerConfig() (configs []constant.ServerConfig, err error) {
 	configs = client.serverConfigs
@@ -80,5 +85,20 @@ func (client *NacosClient) GetServerConfig() (configs []constant.ServerConfig, e
 	return
 }
 
+func (client *NacosClient) SetHttpAgent(agent http_agent.IHttpAgent) (err error) {
+	if agent == nil {
+		err = errors.New("[client.SetHttpAgent] http agent can not be nil")
+	} else {
+		client.agent = agent
+	}
+	return
+}
 
-
+func (client *NacosClient) GetHttpAgent() (agent http_agent.IHttpAgent, err error) {
+	if client.agent == nil {
+		err = errors.New("[client.GetHttpAgent] invalid http agent")
+	} else {
+		agent = client.agent
+	}
+	return
+}

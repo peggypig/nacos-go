@@ -1,4 +1,4 @@
-package httpagent
+package http_agent
 
 import (
 	"log"
@@ -15,7 +15,7 @@ import (
 * @create : 2019-01-07 15:13
 **/
 
-func Get(path string, header http.Header, timeoutMs uint64) (response *http.Response, err error) {
+func get(path string, header http.Header, timeoutMs uint64) (response *http.Response, err error) {
 	client := http.Client{}
 	client.Timeout = time.Millisecond * time.Duration(timeoutMs)
 	request, errNew := http.NewRequest(http.MethodGet, path, nil)

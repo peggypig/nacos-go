@@ -6,7 +6,7 @@ import (
 	"log"
 	"nacos-go/clients/nacos_client"
 	"nacos-go/common/constant"
-	"nacos-go/common/httpagent"
+	"nacos-go/common/http_agent"
 	"nacos-go/common/util"
 	"nacos-go/vo"
 	"net/http"
@@ -32,7 +32,8 @@ type ConfigClient struct {
 	listening    bool
 }
 
-func (client *ConfigClient) syncConfig() (clientConfig constant.ClientConfig, serverConfigs []constant.ServerConfig, err error) {
+func (client *ConfigClient) sync() (clientConfig constant.ClientConfig,
+	serverConfigs []constant.ServerConfig, agent http_agent.IHttpAgent, err error) {
 	clientConfig, err = client.GetClientConfig()
 	if err != nil {
 		log.Println(err, ";do you call client.SetClientConfig()?")
@@ -41,6 +42,12 @@ func (client *ConfigClient) syncConfig() (clientConfig constant.ClientConfig, se
 		serverConfigs, err = client.GetServerConfig()
 		if err != nil {
 			log.Println(err, ";do you call client.SetServerConfig()?")
+		}
+	}
+	if err == nil {
+		agent, err = client.GetHttpAgent()
+		if err != nil {
+			log.Println(err, ";do you call client.SetHttpAgent()?")
 		}
 	}
 	return
@@ -83,19 +90,20 @@ func (client *ConfigClient) GetConfig(param vo.ConfigParam) (content string, err
 	}
 	var clientConfig constant.ClientConfig
 	var serverConfigs []constant.ServerConfig
+	var agent http_agent.IHttpAgent
 	if err == nil {
-		clientConfig, serverConfigs, err = client.syncConfig()
+		clientConfig, serverConfigs, agent, err = client.sync()
 	}
 	var response *http.Response
 	if err == nil {
 		path := "http://" + serverConfigs[0].IpAddr + ":" +
-			strconv.FormatUint(serverConfigs[0].Port, 10) + constant.CONFIG_PATH + "?dataId=" + param.DataId +
+			strconv.FormatUint(serverConfigs[0].Port, 10) + constant.CONFIG_BASE_PATH + "?dataId=" + param.DataId +
 			"&group=" + param.Group
 		if len(param.Tenant) > 0 {
 			path += "&tenant=" + param.Tenant
 		}
 		log.Println("[client.GetConfig] request url :", path)
-		responseTmp, errGet := httpagent.Get(path, nil, clientConfig.TimeoutMs)
+		responseTmp, errGet := agent.Get(path, nil, clientConfig.TimeoutMs)
 		if errGet != nil {
 			err = errGet
 		} else {
@@ -130,8 +138,9 @@ func (client *ConfigClient) PublishConfig(param vo.ConfigParam) (published bool,
 	}
 	var clientConfig constant.ClientConfig
 	var serverConfigs []constant.ServerConfig
+	var agent http_agent.IHttpAgent
 	if err == nil {
-		clientConfig, serverConfigs, err = client.syncConfig()
+		clientConfig, serverConfigs, agent, err = client.sync()
 	}
 	var response *http.Response
 	if err == nil {
@@ -154,7 +163,7 @@ func (client *ConfigClient) PublishConfig(param vo.ConfigParam) (published bool,
 			"Content-Type": {"application/x-www-form-urlencoded"},
 		}
 		log.Println("[client.PublishConfig] request url:", path, " ;body:", body, " ;header:", header)
-		responseTmp, errPost := httpagent.Post(path, header, clientConfig.TimeoutMs, body)
+		responseTmp, errPost := agent.Post(path, header, clientConfig.TimeoutMs, body)
 		if errPost != nil {
 			err = errPost
 		} else {
@@ -191,8 +200,9 @@ func (client *ConfigClient) DeleteConfig(param vo.ConfigParam) (deleted bool, er
 	}
 	var clientConfig constant.ClientConfig
 	var serverConfigs []constant.ServerConfig
+	var agent http_agent.IHttpAgent
 	if err == nil {
-		clientConfig, serverConfigs, err = client.syncConfig()
+		clientConfig, serverConfigs, agent, err = client.sync()
 	}
 	var response *http.Response
 	if err == nil {
@@ -203,7 +213,7 @@ func (client *ConfigClient) DeleteConfig(param vo.ConfigParam) (deleted bool, er
 			path += "&tenant=" + param.Tenant
 		}
 		log.Println("[client.DeleteConfig] request url:", path)
-		responseTmp, errDelete := httpagent.Delete(path, nil, clientConfig.TimeoutMs)
+		responseTmp, errDelete := agent.Delete(path, nil, clientConfig.TimeoutMs)
 		if errDelete != nil {
 			err = errDelete
 		} else {
@@ -248,7 +258,7 @@ func (client *ConfigClient) ListenConfig(params []vo.ConfigParam) (err error) {
 func (client *ConfigClient) listenTask() {
 	go func() {
 		for {
-			clientConfig, serverConfigs, errInner := client.syncConfig()
+			clientConfig, serverConfigs, agent, errInner := client.sync()
 			var listeningConfigs string
 			// 检查&拼接监听参数
 			if errInner == nil {
@@ -293,7 +303,7 @@ func (client *ConfigClient) listenTask() {
 					"Long-Pulling-Timeout": {strconv.FormatUint(clientConfig.ListenInterval, 10)},
 				}
 				log.Println("[client.ListenConfig] request url:", path, " ;body:", body, " ;header:", header)
-				response, errPost := httpagent.Post(path, header, clientConfig.TimeoutMs, body)
+				response, errPost := agent.Post(path, header, clientConfig.TimeoutMs, body)
 				if errPost != nil {
 					log.Println(errPost)
 					continue
@@ -384,3 +394,12 @@ func (client *ConfigClient) putLocalConfig(config vo.ConfigParam) {
 	}
 	log.Println("[client.putLocalConfig] putLocalConfig success")
 }
+
+//func (client *ConfigClient) SetNacosClient(iClient nacos_client.INacosClient) (err error) {
+//	if iClient == nil {
+//		err = errors.New("[client.SetNacosClient] invalid nacos client")
+//	} else {
+//		client.INacosClient = client
+//	}
+//	return
+//}

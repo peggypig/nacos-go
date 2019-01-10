@@ -52,7 +52,7 @@ func TestCreateConfigClient_GetConfig(t *testing.T) {
 		})
 		if errGet != nil {
 			t.Error(errGet)
-		}else {
+		} else {
 			t.Log(content)
 		}
 	}
@@ -74,12 +74,32 @@ func TestCreateServiceClient_GetServiceDetail(t *testing.T) {
 	}
 	if err == nil {
 		service, errGet := client.GetServiceDetail(vo.GetServiceDetailParam{
-			ServiceName:"demoservice",
+			ServiceName: "demoservice",
 		})
 		if errGet != nil {
 			t.Error(errGet)
-		}else {
-			t.Logf("%+v",service)
+		} else {
+			t.Logf("%+v", service)
 		}
+	}
+}
+
+func TestSetConfig(t *testing.T) {
+	client, err := setConfig(map[string]interface{}{
+		"clientConfig": constant.ClientConfig{
+			TimeoutMs: 10 * 1000,
+		},
+		"serverConfigs": []constant.ServerConfig{
+			{
+				IpAddr: "console.nacos.io",
+				Port:   80,
+			},
+		},
+	})
+	if err != nil {
+		t.Error(err)
+	} else {
+		t.Log(client.GetServerConfig())
+		t.Log(client.GetClientConfig())
 	}
 }

@@ -7,7 +7,7 @@ import (
 	"log"
 	"nacos-go/clients/nacos_client"
 	"nacos-go/common/constant"
-	"nacos-go/common/httpagent"
+	"nacos-go/common/http_agent"
 	"nacos-go/vo"
 	"net/http"
 	"strconv"
@@ -30,8 +30,10 @@ type ServiceClient struct {
 	beating bool
 	mutex   sync.Mutex
 }
+
 // 获取参数配置
-func (client *ServiceClient) syncConfig() (clientConfig constant.ClientConfig, serverConfigs []constant.ServerConfig, err error) {
+func (client *ServiceClient) sync() (clientConfig constant.ClientConfig,
+	serverConfigs []constant.ServerConfig, agent http_agent.IHttpAgent, err error) {
 	clientConfig, err = client.GetClientConfig()
 	if err != nil {
 		log.Println(err, ";do you call client.SetClientConfig()?")
@@ -40,6 +42,12 @@ func (client *ServiceClient) syncConfig() (clientConfig constant.ClientConfig, s
 		serverConfigs, err = client.GetServerConfig()
 		if err != nil {
 			log.Println(err, ";do you call client.SetServerConfig()?")
+		}
+	}
+	if err == nil {
+		agent, err = client.GetHttpAgent()
+		if err != nil {
+			log.Println(err, ";do you call client.SetHttpAgent()?")
 		}
 	}
 	return
@@ -58,8 +66,9 @@ func (client *ServiceClient) RegisterServiceInstance(param vo.RegisterServiceIns
 	}
 	var clientConfig constant.ClientConfig
 	var serverConfigs []constant.ServerConfig
+	var agent http_agent.IHttpAgent
 	if err == nil {
-		clientConfig, serverConfigs, err = client.syncConfig()
+		clientConfig, serverConfigs, agent, err = client.sync()
 	}
 	// 构造并完成http请求
 	var response *http.Response
@@ -89,7 +98,7 @@ func (client *ServiceClient) RegisterServiceInstance(param vo.RegisterServiceIns
 			"Content-Type": {"application/x-www-form-urlencoded"},
 		}
 		log.Println("[client.RegisterServiceInstance] request url:", path, " ;body:", body, " ;header:", header)
-		responseTmp, errPost := httpagent.Post(path, header, clientConfig.TimeoutMs, body)
+		responseTmp, errPost := agent.Post(path, header, clientConfig.TimeoutMs, body)
 		if errPost != nil {
 			err = errPost
 		} else {
@@ -134,8 +143,9 @@ func (client *ServiceClient) LogoutServiceInstance(param vo.LogoutServiceInstanc
 	}
 	var clientConfig constant.ClientConfig
 	var serverConfigs []constant.ServerConfig
+	var agent http_agent.IHttpAgent
 	if err == nil {
-		clientConfig, serverConfigs, err = client.syncConfig()
+		clientConfig, serverConfigs, agent, err = client.sync()
 	}
 	// 构造并完成http请求
 	var response *http.Response
@@ -147,7 +157,7 @@ func (client *ServiceClient) LogoutServiceInstance(param vo.LogoutServiceInstanc
 			path += "&tenant=" + param.Tenant
 		}
 		log.Println("[client.LogoutServiceInstance] request url:", path)
-		responseTmp, errPost := httpagent.Delete(path, nil, clientConfig.TimeoutMs)
+		responseTmp, errPost := agent.Delete(path, nil, clientConfig.TimeoutMs)
 		if errPost != nil {
 			err = errPost
 		} else {
@@ -192,8 +202,9 @@ func (client *ServiceClient) ModifyServiceInstance(param vo.ModifyServiceInstanc
 	}
 	var clientConfig constant.ClientConfig
 	var serverConfigs []constant.ServerConfig
+	var agent http_agent.IHttpAgent
 	if err == nil {
-		clientConfig, serverConfigs, err = client.syncConfig()
+		clientConfig, serverConfigs, agent, err = client.sync()
 	}
 	// 构造并完成http请求
 	var response *http.Response
@@ -218,7 +229,7 @@ func (client *ServiceClient) ModifyServiceInstance(param vo.ModifyServiceInstanc
 			"Content-Type": {"application/x-www-form-urlencoded"},
 		}
 		log.Println("[client.ModifyServiceInstance] request url:", path, " ;body:", body, " ;header:", header)
-		responseTmp, errPost := httpagent.Put(path, header, clientConfig.TimeoutMs, body)
+		responseTmp, errPost := agent.Put(path, header, clientConfig.TimeoutMs, body)
 		if errPost != nil {
 			err = errPost
 		} else {
@@ -254,8 +265,9 @@ func (client *ServiceClient) GetService(param vo.GetServiceParam) (service vo.Se
 	}
 	var clientConfig constant.ClientConfig
 	var serverConfigs []constant.ServerConfig
+	var agent http_agent.IHttpAgent
 	if err == nil {
-		clientConfig, serverConfigs, err = client.syncConfig()
+		clientConfig, serverConfigs, agent, err = client.sync()
 	}
 	// 构造并完成http请求
 	var response *http.Response
@@ -280,7 +292,7 @@ func (client *ServiceClient) GetService(param vo.GetServiceParam) (service vo.Se
 			}
 		}
 		log.Println("[client.GetService] request url:", path)
-		responseTmp, errPost := httpagent.Get(path, nil, clientConfig.TimeoutMs)
+		responseTmp, errPost := agent.Get(path, nil, clientConfig.TimeoutMs)
 		if errPost != nil {
 			err = errPost
 		} else {
@@ -321,8 +333,9 @@ func (client *ServiceClient) GetServiceInstance(param vo.GetServiceInstanceParam
 	}
 	var clientConfig constant.ClientConfig
 	var serverConfigs []constant.ServerConfig
+	var agent http_agent.IHttpAgent
 	if err == nil {
-		clientConfig, serverConfigs, err = client.syncConfig()
+		clientConfig, serverConfigs, agent, err = client.sync()
 	}
 	// 构造并完成http请求
 	var response *http.Response
@@ -337,7 +350,7 @@ func (client *ServiceClient) GetServiceInstance(param vo.GetServiceInstanceParam
 			path += "&cluster=" + param.Cluster
 		}
 		log.Println("[client.GetServiceInstance] request url:", path)
-		responseTmp, errPost := httpagent.Get(path, nil, clientConfig.TimeoutMs)
+		responseTmp, errPost := agent.Get(path, nil, clientConfig.TimeoutMs)
 		if errPost != nil {
 			err = errPost
 		} else {
@@ -382,7 +395,7 @@ func (client *ServiceClient) StartBeatTask(param vo.BeatTaskParam) (err error) {
 func (client *ServiceClient) startBeatTask(param vo.BeatTaskParam) {
 	go func() {
 		for {
-			clientConfig, serverConfigs, errInner := client.syncConfig()
+			clientConfig, serverConfigs, agent, errInner := client.sync()
 			// 心跳参数检查
 			if errInner == nil {
 				if len(param.Ip) <= 0 {
@@ -429,7 +442,7 @@ func (client *ServiceClient) startBeatTask(param vo.BeatTaskParam) {
 					"Content-Type": {"application/x-www-form-urlencoded"},
 				}
 				log.Println("[client.StartBeatTask] request url:", path, " ;body:", body, " ;header:", header)
-				response, errPost := httpagent.Post(path, header, clientConfig.TimeoutMs, body)
+				response, errPost := agent.Post(path, header, clientConfig.TimeoutMs, body)
 				if errPost != nil {
 					log.Println(errPost)
 					continue
@@ -470,8 +483,9 @@ func (client *ServiceClient) GetServiceDetail(param vo.GetServiceDetailParam) (s
 	}
 	var clientConfig constant.ClientConfig
 	var serverConfigs []constant.ServerConfig
+	var agent http_agent.IHttpAgent
 	if err == nil {
-		clientConfig, serverConfigs, err = client.syncConfig()
+		clientConfig, serverConfigs, agent, err = client.sync()
 	}
 	// 构造并完成http请求
 	var response *http.Response
@@ -479,7 +493,7 @@ func (client *ServiceClient) GetServiceDetail(param vo.GetServiceDetailParam) (s
 		path := "http://" + serverConfigs[0].IpAddr + ":" + strconv.FormatUint(serverConfigs[0].Port, 10) +
 			constant.SERVICE_BASE_PATH + "/catalog/serviceDetail?serviceName=" + param.ServiceName
 		log.Println("[client.GetServiceInfo] request url:", path)
-		responseTmp, errPost := httpagent.Get(path, nil, clientConfig.TimeoutMs)
+		responseTmp, errPost := agent.Get(path, nil, clientConfig.TimeoutMs)
 		if errPost != nil {
 			err = errPost
 		} else {
