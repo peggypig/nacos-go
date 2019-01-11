@@ -43,6 +43,7 @@ const (
 	KEY_HEALTHY         = "healthy"
 	KEY_METADATA        = "metadata"
 	KEY_CLUSTER_NAME    = "clusterName"
+	KEY_CLUSTER         = "cluster"
 	KEY_BEAT            = "beat"
 	KEY_DOM             = "dom"
 )

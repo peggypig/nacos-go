@@ -249,6 +249,7 @@ func (client *ConfigClient) ListenConfig(params []vo.ConfigParam) (err error) {
 	}
 	// 监听
 	if err == nil {
+		client.listening = true
 		client.localConfigs = params
 		client.listenTask()
 	}
@@ -284,6 +285,9 @@ func (client *ConfigClient) listenTask() {
 				}
 			}
 			if errInner != nil {
+				client.mutex.Lock()
+				client.listening = false
+				client.mutex.Unlock()
 				log.Println("client.ListenConfig failed")
 				break
 			}
@@ -329,7 +333,6 @@ func (client *ConfigClient) listenTask() {
 				if len(changed) > 0 {
 					client.updateLocalConfig(changed)
 				}
-				client.listening = true
 			}
 			if !client.listening {
 				break

@@ -152,7 +152,7 @@ func (client *ServiceClient) LogoutServiceInstance(param vo.LogoutServiceInstanc
 	if err == nil {
 		path := "http://" + serverConfigs[0].IpAddr + ":" + strconv.FormatUint(serverConfigs[0].Port, 10) +
 			constant.SERVICE_PATH + "?serviceName=" + param.ServiceName + "&ip=" + param.Ip + "&port=" +
-			strconv.FormatUint(param.Port, 10)
+			strconv.FormatUint(param.Port, 10)+"&cluster="+param.Cluster
 		if len(param.Tenant) > 0 {
 			path += "&tenant=" + param.Tenant
 		}
@@ -215,6 +215,7 @@ func (client *ServiceClient) ModifyServiceInstance(param vo.ModifyServiceInstanc
 		body[constant.KEY_SERVICE_NAME] = param.ServiceName
 		body[constant.KEY_IP] = param.Ip
 		body[constant.KEY_PORT] = strconv.FormatUint(param.Port, 10)
+		body[constant.KEY_CLUSTER] = param.Cluster
 		if len(param.Tenant) > 0 {
 			body[constant.KEY_TENANT] = param.Tenant
 		}
@@ -387,6 +388,7 @@ func (client *ServiceClient) StartBeatTask(param vo.BeatTaskParam) (err error) {
 	}
 	// 开启任务
 	if err == nil {
+		client.beating = true
 		client.startBeatTask(param)
 	}
 	return
@@ -406,6 +408,9 @@ func (client *ServiceClient) startBeatTask(param vo.BeatTaskParam) {
 				}
 			}
 			if errInner != nil {
+				client.mutex.Lock()
+				client.beating = false
+				client.mutex.Unlock()
 				log.Println("client.StartBeatTask failed")
 				break
 			}
@@ -459,7 +464,6 @@ func (client *ServiceClient) startBeatTask(param vo.BeatTaskParam) {
 					}
 					_ = response.Body.Close()
 				}
-				client.beating = true
 			}
 			if !client.beating {
 				break
