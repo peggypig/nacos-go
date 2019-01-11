@@ -35,4 +35,3 @@ func get(path string, header http.Header, timeoutMs uint64) (response *http.Resp
 	}
 	return
 }
-

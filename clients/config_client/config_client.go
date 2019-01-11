@@ -97,7 +97,7 @@ func (client *ConfigClient) GetConfig(param vo.ConfigParam) (content string, err
 	var response *http.Response
 	if err == nil {
 		path := "http://" + serverConfigs[0].IpAddr + ":" +
-			strconv.FormatUint(serverConfigs[0].Port, 10) + constant.CONFIG_BASE_PATH + "?dataId=" + param.DataId +
+			strconv.FormatUint(serverConfigs[0].Port, 10) + constant.CONFIG_PATH + "?dataId=" + param.DataId +
 			"&group=" + param.Group
 		if len(param.Tenant) > 0 {
 			path += "&tenant=" + param.Tenant
@@ -394,12 +394,3 @@ func (client *ConfigClient) putLocalConfig(config vo.ConfigParam) {
 	}
 	log.Println("[client.putLocalConfig] putLocalConfig success")
 }
-
-//func (client *ConfigClient) SetNacosClient(iClient nacos_client.INacosClient) (err error) {
-//	if iClient == nil {
-//		err = errors.New("[client.SetNacosClient] invalid nacos client")
-//	} else {
-//		client.INacosClient = client
-//	}
-//	return
-//}
