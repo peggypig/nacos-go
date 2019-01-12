@@ -46,16 +46,21 @@ func TestMockIConfigClient_GetConfig(t *testing.T) {
 	}, nil)
 
 	mockINacosClient.EXPECT().GetServerConfig().Times(1).Return([]constant.ServerConfig{{
-		IpAddr: "console.nacos.io",
-		Port:   80,
+		IpAddr:      "console.nacos.io",
+		ContextPath: "/nacos",
+		Port:        80,
 	}}, nil)
 
 	mockINacosClient.EXPECT().GetHttpAgent().Times(1).Return(mockIHttpAgent, nil)
 
 	mockIHttpAgent.EXPECT().Get(
-		gomock.Eq("http://console.nacos.io:80/nacos/v1/cs/configs?dataId=TEST&group=TEST"),
+		gomock.Eq("http://console.nacos.io:80/nacos/v1/cs/configs"),
 		gomock.AssignableToTypeOf(http.Header{}),
-		gomock.AssignableToTypeOf(uint64(10*1000))).
+		gomock.AssignableToTypeOf(uint64(10*1000)),
+		gomock.Eq(map[string]string{
+			"dataId": "TEST",
+			"group":  "TEST",
+		})).
 		Times(1).
 		Return(http_agent.FakeHttpResponse(200, `MOCK RESULT`), nil)
 
@@ -173,9 +178,13 @@ func TestMockIConfigClientMockRecorder_DeleteConfig(t *testing.T) {
 	mockINacosClient.EXPECT().GetHttpAgent().Times(1).Return(mockIHttpAgent, nil)
 
 	mockIHttpAgent.EXPECT().Delete(
-		gomock.Eq("http://console.nacos.io:80/nacos/v1/cs/configs?dataId=TEST&group=TEST"),
+		gomock.Eq("http://console.nacos.io:80/nacos/v1/cs/configs"),
 		gomock.AssignableToTypeOf(http.Header{}),
-		gomock.AssignableToTypeOf(uint64(10*1000))).
+		gomock.AssignableToTypeOf(uint64(10*1000)),
+		gomock.Eq(map[string]string{
+			"dataId": "TEST",
+			"group":  "TEST",
+		})).
 		Times(1).
 		Return(http_agent.FakeHttpResponse(200, `true`), nil)
 
@@ -230,9 +239,13 @@ func TestMockIConfigClientMockRecorder_GetConfigContent(t *testing.T) {
 	mockINacosClient.EXPECT().GetHttpAgent().Times(1).Return(mockIHttpAgent, nil)
 
 	mockIHttpAgent.EXPECT().Get(
-		gomock.Eq("http://console.nacos.io:80/nacos/v1/cs/configs?dataId=TEST&group=TEST"),
+		gomock.Eq("http://console.nacos.io:80/nacos/v1/cs/configs"),
 		gomock.AssignableToTypeOf(http.Header{}),
-		gomock.AssignableToTypeOf(uint64(10*1000))).
+		gomock.AssignableToTypeOf(uint64(10*1000)),
+		gomock.Eq(map[string]string{
+			"dataId": "TEST",
+			"group":  "TEST",
+		})).
 		Times(1).
 		Return(http_agent.FakeHttpResponse(200, `MOCK RESULT`), nil)
 
@@ -247,7 +260,7 @@ func TestMockIConfigClientMockRecorder_GetConfigContent(t *testing.T) {
 		IpAddr: "console.nacos.io",
 		Port:   80,
 	}})
-	content, err := client.GetConfigContent("TEST","TEST")
+	content, err := client.GetConfigContent("TEST", "TEST")
 	t.Log(content, err)
 }
 
@@ -288,8 +301,8 @@ func TestMockIConfigClient_ListenConfig(t *testing.T) {
 		gomock.AssignableToTypeOf(http.Header{}),
 		gomock.AssignableToTypeOf(uint64(10*1000)),
 		gomock.Eq(map[string]string{
-			"Listening-Configs":  "TEST"+constant.SPLIT_CONFIG_INNER +"TEST"+constant.SPLIT_CONFIG_INNER+
-				constant.SPLIT_CONFIG_INNER+constant.SPLIT_CONFIG,
+			"Listening-Configs": "TEST" + constant.SPLIT_CONFIG_INNER + "TEST" + constant.SPLIT_CONFIG_INNER +
+				constant.SPLIT_CONFIG_INNER + constant.SPLIT_CONFIG,
 		})).AnyTimes().
 		Return(http_agent.FakeHttpResponse(200, ``), nil)
 
@@ -309,7 +322,7 @@ func TestMockIConfigClient_ListenConfig(t *testing.T) {
 		Group:  "TEST",
 	}})
 	t.Log(err)
-	time.Sleep(21*time.Second)
+	time.Sleep(21 * time.Second)
 }
 
 func TestMockIConfigClient_StopListenConfig(t *testing.T) {
@@ -349,8 +362,8 @@ func TestMockIConfigClient_StopListenConfig(t *testing.T) {
 		gomock.AssignableToTypeOf(http.Header{}),
 		gomock.AssignableToTypeOf(uint64(10*1000)),
 		gomock.Eq(map[string]string{
-			"Listening-Configs":  "TEST"+constant.SPLIT_CONFIG_INNER +"TEST"+constant.SPLIT_CONFIG_INNER+
-				constant.SPLIT_CONFIG_INNER+constant.SPLIT_CONFIG,
+			"Listening-Configs": "TEST" + constant.SPLIT_CONFIG_INNER + "TEST" + constant.SPLIT_CONFIG_INNER +
+				constant.SPLIT_CONFIG_INNER + constant.SPLIT_CONFIG,
 		})).AnyTimes().
 		Return(http_agent.FakeHttpResponse(200, ``), nil)
 
@@ -370,9 +383,9 @@ func TestMockIConfigClient_StopListenConfig(t *testing.T) {
 		Group:  "TEST",
 	}})
 	go func() {
-		time.Sleep(11*time.Second)
+		time.Sleep(11 * time.Second)
 		client.StopListenConfig()
 	}()
 	t.Log(err)
-	time.Sleep(21*time.Second)
+	time.Sleep(21 * time.Second)
 }

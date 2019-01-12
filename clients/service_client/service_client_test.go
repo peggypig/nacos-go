@@ -3,6 +3,7 @@ package service_client
 import (
 	"nacos-go/clients/nacos_client"
 	"nacos-go/common/constant"
+	"nacos-go/common/http_agent"
 	"nacos-go/vo"
 	"testing"
 	"time"
@@ -20,6 +21,7 @@ import (
 func TestServiceClient_RegisterServiceInstance(t *testing.T) {
 	client := ServiceClient{}
 	client.INacosClient = &nacos_client.NacosClient{}
+	_ = client.SetHttpAgent(&http_agent.HttpAgent{})
 	_ = client.SetClientConfig(constant.ClientConfig{
 		TimeoutMs: 30 * 1000,
 	})
@@ -30,7 +32,7 @@ func TestServiceClient_RegisterServiceInstance(t *testing.T) {
 	success, err := client.RegisterServiceInstance(vo.RegisterServiceInstanceParam{
 		Ip:          "10.0.0.10",
 		Port:        8848,
-		ServiceName: "demoservice",
+		ServiceName: "demoservice1",
 		Weight:      -1,
 		ClusterName: "a",
 	})
@@ -44,6 +46,7 @@ func TestServiceClient_RegisterServiceInstance(t *testing.T) {
 func TestServiceClient_ModifyServiceInstance(t *testing.T) {
 	client := ServiceClient{}
 	client.INacosClient = &nacos_client.NacosClient{}
+	_ = client.SetHttpAgent(&http_agent.HttpAgent{})
 	_ = client.SetServerConfig([]constant.ServerConfig{constant.ServerConfig{
 		IpAddr: "10.0.0.8",
 		Port:   8848,
@@ -68,6 +71,7 @@ func TestServiceClient_ModifyServiceInstance(t *testing.T) {
 func TestServiceClient_GetService(t *testing.T) {
 	client := ServiceClient{}
 	client.INacosClient = &nacos_client.NacosClient{}
+	_ = client.SetHttpAgent(&http_agent.HttpAgent{})
 	_ = client.SetServerConfig([]constant.ServerConfig{constant.ServerConfig{
 		IpAddr: "10.0.0.8",
 		Port:   8848,
@@ -88,6 +92,7 @@ func TestServiceClient_GetService(t *testing.T) {
 func TestServiceClient_GetServiceInstance(t *testing.T) {
 	client := ServiceClient{}
 	client.INacosClient = &nacos_client.NacosClient{}
+	_ = client.SetHttpAgent(&http_agent.HttpAgent{})
 	_ = client.SetServerConfig([]constant.ServerConfig{constant.ServerConfig{
 		IpAddr: "10.0.0.8",
 		Port:   8848,
@@ -111,6 +116,7 @@ func TestServiceClient_GetServiceInstance(t *testing.T) {
 func TestServiceClient_LogoutServiceInstance(t *testing.T) {
 	client := ServiceClient{}
 	client.INacosClient = &nacos_client.NacosClient{}
+	_ = client.SetHttpAgent(&http_agent.HttpAgent{})
 	_ = client.SetServerConfig([]constant.ServerConfig{constant.ServerConfig{
 		IpAddr: "10.0.0.8",
 		Port:   8848,
@@ -134,6 +140,7 @@ func TestServiceClient_LogoutServiceInstance(t *testing.T) {
 func TestServiceClient_StartBeatTask(t *testing.T) {
 	client := ServiceClient{}
 	client.INacosClient = &nacos_client.NacosClient{}
+	_ = client.SetHttpAgent(&http_agent.HttpAgent{})
 	_ = client.SetServerConfig([]constant.ServerConfig{constant.ServerConfig{
 		IpAddr: "10.0.0.8",
 		Port:   8848,
@@ -157,6 +164,7 @@ func TestServiceClient_StartBeatTask(t *testing.T) {
 func TestServiceClient_GetServiceInfo(t *testing.T) {
 	client := ServiceClient{}
 	client.INacosClient = &nacos_client.NacosClient{}
+	_ = client.SetHttpAgent(&http_agent.HttpAgent{})
 	_ = client.SetServerConfig([]constant.ServerConfig{constant.ServerConfig{
 		IpAddr: "10.0.0.8",
 		Port:   8848,

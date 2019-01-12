@@ -96,14 +96,10 @@ func (client *ConfigClient) GetConfig(param vo.ConfigParam) (content string, err
 	}
 	var response *http.Response
 	if err == nil {
-		path := "http://" + serverConfigs[0].IpAddr + ":" +
-			strconv.FormatUint(serverConfigs[0].Port, 10) + constant.CONFIG_PATH + "?dataId=" + param.DataId +
-			"&group=" + param.Group
-		if len(param.Tenant) > 0 {
-			path += "&tenant=" + param.Tenant
-		}
-		log.Println("[client.GetConfig] request url :", path)
-		responseTmp, errGet := agent.Get(path, nil, clientConfig.TimeoutMs)
+		path := client.buildBasePath(serverConfigs[0])
+		params := util.TransformObject2Param(param)
+		log.Println("[client.GetConfig] request url :", path, ",params:", params)
+		responseTmp, errGet := agent.Get(path, nil, clientConfig.TimeoutMs, params)
 		if errGet != nil {
 			err = errGet
 		} else {
@@ -144,21 +140,8 @@ func (client *ConfigClient) PublishConfig(param vo.ConfigParam) (published bool,
 	}
 	var response *http.Response
 	if err == nil {
-		path := "http://" + serverConfigs[0].IpAddr + ":" +
-			strconv.FormatUint(serverConfigs[0].Port, 10) + constant.CONFIG_PATH
-		body := make(map[string]string)
-		body[constant.KEY_DATA_ID] = param.DataId
-		body[constant.KEY_GROUP] = param.Group
-		body[constant.KEY_CONTENT] = param.Content
-		if len(param.Tenant) > 0 {
-			body[constant.KEY_TENANT] = param.Tenant
-		}
-		if len(param.Desc) > 0 {
-			body[constant.KEY_DESC] = param.Desc
-		}
-		if len(param.AppName) > 0 {
-			body[constant.KEY_APP_NAME] = param.AppName
-		}
+		path := client.buildBasePath(serverConfigs[0]) + constant.CONFIG_PATH
+		body := util.TransformObject2Param(param)
 		header := map[string][]string{
 			"Content-Type": {"application/x-www-form-urlencoded"},
 		}
@@ -206,14 +189,10 @@ func (client *ConfigClient) DeleteConfig(param vo.ConfigParam) (deleted bool, er
 	}
 	var response *http.Response
 	if err == nil {
-		path := "http://" + serverConfigs[0].IpAddr + ":" +
-			strconv.FormatUint(serverConfigs[0].Port, 10) + constant.CONFIG_PATH + "?dataId=" + param.DataId +
-			"&group=" + param.Group
-		if len(param.Tenant) > 0 {
-			path += "&tenant=" + param.Tenant
-		}
-		log.Println("[client.DeleteConfig] request url:", path)
-		responseTmp, errDelete := agent.Delete(path, nil, clientConfig.TimeoutMs)
+		path := client.buildBasePath(serverConfigs[0]) + constant.CONFIG_PATH
+		params := util.TransformObject2Param(param)
+		log.Println("[client.DeleteConfig] request url:", path, ",params:", params)
+		responseTmp, errDelete := agent.Delete(path, nil, clientConfig.TimeoutMs, params)
 		if errDelete != nil {
 			err = errDelete
 		} else {
@@ -298,8 +277,7 @@ func (client *ConfigClient) listenTask() {
 			}
 			// http 请求
 			if errInner == nil {
-				path := "http://" + serverConfigs[0].IpAddr + ":" +
-					strconv.FormatUint(serverConfigs[0].Port, 10) + constant.CONFIG_LISTEN_PATH
+				path := client.buildBasePath(serverConfigs[0]) + constant.CONFIG_LISTEN_PATH
 				body := make(map[string]string)
 				body[constant.KEY_LISTEN_CONFIGS] = listeningConfigs
 				header := map[string][]string{
@@ -396,4 +374,10 @@ func (client *ConfigClient) putLocalConfig(config vo.ConfigParam) {
 		}
 	}
 	log.Println("[client.putLocalConfig] putLocalConfig success")
+}
+
+func (client *ConfigClient) buildBasePath(serverConfig constant.ServerConfig) (basePath string) {
+	basePath = "http://" + serverConfig.IpAddr + ":" +
+		strconv.FormatUint(serverConfig.Port, 10) + serverConfig.ContextPath + constant.CONFIG_PATH
+	return
 }

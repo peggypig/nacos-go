@@ -10,8 +10,9 @@ package constant
 **/
 
 type ServerConfig struct {
-	IpAddr string
-	Port   uint64
+	ContextPath string
+	IpAddr      string
+	Port        uint64
 }
 
 type ClientConfig struct {

@@ -53,10 +53,13 @@ func (client *NacosClient) SetServerConfig(configs []constant.ServerConfig) (err
 		err = errors.New("[client.SetServerConfig] configs can not be empty")
 	}
 	if err == nil {
-		for index, config := range configs {
-			if len(config.IpAddr) <= 0 || config.Port <= 0 || config.Port > 65535 {
-				err = errors.New("[client.SetServerConfig] configs[" + strconv.Itoa(index) + "] is invalid")
+		for i := 0; i < len(configs); i++ {
+			if len(configs[i].IpAddr) <= 0 || configs[i].Port <= 0 || configs[i].Port > 65535 {
+				err = errors.New("[client.SetServerConfig] configs[" + strconv.Itoa(i) + "] is invalid")
 				break
+			}
+			if len(configs[i].ContextPath) <= 0 {
+				configs[i].ContextPath = constant.DEFAULT_CONTEXT_PATH
 			}
 		}
 	}

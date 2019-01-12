@@ -34,33 +34,33 @@ func (m *MockIHttpAgent) EXPECT() *MockIHttpAgentMockRecorder {
 }
 
 // Delete mocks base method
-func (m *MockIHttpAgent) Delete(arg0 string, arg1 http.Header, arg2 uint64) (*http.Response, error) {
+func (m *MockIHttpAgent) Delete(arg0 string, arg1 http.Header, arg2 uint64, arg3 map[string]string) (*http.Response, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Delete", arg0, arg1, arg2)
+	ret := m.ctrl.Call(m, "Delete", arg0, arg1, arg2, arg3)
 	ret0, _ := ret[0].(*http.Response)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Delete indicates an expected call of Delete
-func (mr *MockIHttpAgentMockRecorder) Delete(arg0, arg1, arg2 interface{}) *gomock.Call {
+func (mr *MockIHttpAgentMockRecorder) Delete(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockIHttpAgent)(nil).Delete), arg0, arg1, arg2)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockIHttpAgent)(nil).Delete), arg0, arg1, arg2, arg3)
 }
 
 // Get mocks base method
-func (m *MockIHttpAgent) Get(arg0 string, arg1 http.Header, arg2 uint64) (*http.Response, error) {
+func (m *MockIHttpAgent) Get(arg0 string, arg1 http.Header, arg2 uint64, arg3 map[string]string) (*http.Response, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Get", arg0, arg1, arg2)
+	ret := m.ctrl.Call(m, "Get", arg0, arg1, arg2, arg3)
 	ret0, _ := ret[0].(*http.Response)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Get indicates an expected call of Get
-func (mr *MockIHttpAgentMockRecorder) Get(arg0, arg1, arg2 interface{}) *gomock.Call {
+func (mr *MockIHttpAgentMockRecorder) Get(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockIHttpAgent)(nil).Get), arg0, arg1, arg2)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockIHttpAgent)(nil).Get), arg0, arg1, arg2, arg3)
 }
 
 // Post mocks base method

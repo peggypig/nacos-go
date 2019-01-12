@@ -8,6 +8,7 @@ import (
 	"nacos-go/clients/nacos_client"
 	"nacos-go/common/constant"
 	"nacos-go/common/http_agent"
+	"nacos-go/common/util"
 	"nacos-go/vo"
 	"net/http"
 	"strconv"
@@ -73,27 +74,8 @@ func (client *ServiceClient) RegisterServiceInstance(param vo.RegisterServiceIns
 	// 构造并完成http请求
 	var response *http.Response
 	if err == nil {
-		path := "http://" + serverConfigs[0].IpAddr + ":" + strconv.FormatUint(serverConfigs[0].Port, 10) +
-			constant.SERVICE_PATH
-		body := make(map[string]string)
-		body[constant.KEY_SERVICE_NAME] = param.ServiceName
-		body[constant.KEY_IP] = param.Ip
-		body[constant.KEY_PORT] = strconv.FormatUint(param.Port, 10)
-		body[constant.KEY_ENABLE] = strconv.FormatBool(param.Enable)
-		body[constant.KEY_HEALTHY] = strconv.FormatBool(param.Healthy)
-		if len(param.Tenant) > 0 {
-			body[constant.KEY_TENANT] = param.Tenant
-		}
-		if len(param.ClusterName) > 0 {
-			body[constant.KEY_CLUSTER_NAME] = param.ClusterName
-		}
-		if param.Weight >= 0 {
-			body[constant.KEY_WEIGHT] = strconv.FormatFloat(param.Weight, 'f', -1, 64)
-		}
-		if len(param.Metadata) > 0 {
-			metadataBytes, _ := json.Marshal(param.Metadata)
-			body[constant.KEY_METADATA] = string(metadataBytes)
-		}
+		path := client.buildBasePath(serverConfigs[0]) + constant.SERVICE_PATH
+		body := util.TransformObject2Param(param)
 		header := map[string][]string{
 			"Content-Type": {"application/x-www-form-urlencoded"},
 		}
@@ -150,14 +132,10 @@ func (client *ServiceClient) LogoutServiceInstance(param vo.LogoutServiceInstanc
 	// 构造并完成http请求
 	var response *http.Response
 	if err == nil {
-		path := "http://" + serverConfigs[0].IpAddr + ":" + strconv.FormatUint(serverConfigs[0].Port, 10) +
-			constant.SERVICE_PATH + "?serviceName=" + param.ServiceName + "&ip=" + param.Ip + "&port=" +
-			strconv.FormatUint(param.Port, 10)+"&cluster="+param.Cluster
-		if len(param.Tenant) > 0 {
-			path += "&tenant=" + param.Tenant
-		}
-		log.Println("[client.LogoutServiceInstance] request url:", path)
-		responseTmp, errPost := agent.Delete(path, nil, clientConfig.TimeoutMs)
+		path := client.buildBasePath(serverConfigs[0]) + constant.SERVICE_PATH
+		params := util.TransformObject2Param(param)
+		log.Println("[client.LogoutServiceInstance] request url:", path, ",params:", params)
+		responseTmp, errPost := agent.Delete(path, nil, clientConfig.TimeoutMs, params)
 		if errPost != nil {
 			err = errPost
 		} else {
@@ -209,23 +187,8 @@ func (client *ServiceClient) ModifyServiceInstance(param vo.ModifyServiceInstanc
 	// 构造并完成http请求
 	var response *http.Response
 	if err == nil {
-		path := "http://" + serverConfigs[0].IpAddr + ":" + strconv.FormatUint(serverConfigs[0].Port, 10) +
-			constant.SERVICE_PATH + "/update"
-		body := make(map[string]string)
-		body[constant.KEY_SERVICE_NAME] = param.ServiceName
-		body[constant.KEY_IP] = param.Ip
-		body[constant.KEY_PORT] = strconv.FormatUint(param.Port, 10)
-		body[constant.KEY_CLUSTER] = param.Cluster
-		if len(param.Tenant) > 0 {
-			body[constant.KEY_TENANT] = param.Tenant
-		}
-		if param.Weight >= 0 {
-			body[constant.KEY_WEIGHT] = strconv.FormatFloat(param.Weight, 'f', -1, 64)
-		}
-		if len(param.Metadata) > 0 {
-			metadataBytes, _ := json.Marshal(param.Metadata)
-			body[constant.KEY_METADATA] = string(metadataBytes)
-		}
+		path := client.buildBasePath(serverConfigs[0]) + constant.SERVICE_PATH + "/update"
+		body := util.TransformObject2Param(param)
 		header := map[string][]string{
 			"Content-Type": {"application/x-www-form-urlencoded"},
 		}
@@ -273,27 +236,10 @@ func (client *ServiceClient) GetService(param vo.GetServiceParam) (service vo.Se
 	// 构造并完成http请求
 	var response *http.Response
 	if err == nil {
-		path := "http://" + serverConfigs[0].IpAddr + ":" + strconv.FormatUint(serverConfigs[0].Port, 10) +
-			constant.SERVICE_PATH + "/list?serviceName=" + param.ServiceName
-		if len(param.Tenant) > 0 {
-			path += "&tenant=" + param.Tenant
-		}
-		if len(param.Clusters) > 0 {
-			clusters := ""
-			for _, cluster := range param.Clusters {
-				if len(cluster) > 0 {
-					clusters += cluster + ","
-				}
-			}
-			if strings.HasSuffix(clusters, ",") {
-				clusters = clusters[:len(clusters)-1]
-			}
-			if len(clusters) > 0 {
-				path += "&clusters=" + clusters
-			}
-		}
-		log.Println("[client.GetService] request url:", path)
-		responseTmp, errPost := agent.Get(path, nil, clientConfig.TimeoutMs)
+		path := client.buildBasePath(serverConfigs[0]) + constant.SERVICE_PATH + "/list"
+		params := util.TransformObject2Param(param)
+		log.Println("[client.GetService] request url:", path,",params:",params)
+		responseTmp, errPost := agent.Get(path, nil, clientConfig.TimeoutMs, params)
 		if errPost != nil {
 			err = errPost
 		} else {
@@ -341,17 +287,11 @@ func (client *ServiceClient) GetServiceInstance(param vo.GetServiceInstanceParam
 	// 构造并完成http请求
 	var response *http.Response
 	if err == nil {
-		path := "http://" + serverConfigs[0].IpAddr + ":" + strconv.FormatUint(serverConfigs[0].Port, 10) +
-			constant.SERVICE_PATH + "?serviceName=" + param.ServiceName + "&ip=" + param.Ip + "&port=" +
-			strconv.FormatUint(param.Port, 10) + "&healthyOnly" + strconv.FormatBool(param.HealthyOnly)
-		if len(param.Tenant) > 0 {
-			path += "&tenant=" + param.Tenant
-		}
-		if len(param.Cluster) > 0 {
-			path += "&cluster=" + param.Cluster
-		}
-		log.Println("[client.GetServiceInstance] request url:", path)
-		responseTmp, errPost := agent.Get(path, nil, clientConfig.TimeoutMs)
+		path := client.buildBasePath(serverConfigs[0]) +
+			constant.SERVICE_PATH
+		params := util.TransformObject2Param(param)
+		log.Println("[client.GetServiceInstance] request url:", path,",params:",params)
+		responseTmp, errPost := agent.Get(path, nil, clientConfig.TimeoutMs, params)
 		if errPost != nil {
 			err = errPost
 		} else {
@@ -433,8 +373,7 @@ func (client *ServiceClient) startBeatTask(param vo.BeatTaskParam) {
 			}
 			// http 请求
 			if errInner == nil {
-				path := "http://" + serverConfigs[0].IpAddr + ":" +
-					strconv.FormatUint(serverConfigs[0].Port, 10) + constant.SERVICE_BASE_PATH + "/api/clientBeat"
+				path := client.buildBasePath(serverConfigs[0]) + constant.SERVICE_BASE_PATH + "/api/clientBeat"
 				body := make(map[string]string)
 				body[constant.KEY_DOM] = param.Dom
 				paramBytes, errMarshal := json.Marshal(param)
@@ -494,10 +433,11 @@ func (client *ServiceClient) GetServiceDetail(param vo.GetServiceDetailParam) (s
 	// 构造并完成http请求
 	var response *http.Response
 	if err == nil {
-		path := "http://" + serverConfigs[0].IpAddr + ":" + strconv.FormatUint(serverConfigs[0].Port, 10) +
-			constant.SERVICE_BASE_PATH + "/catalog/serviceDetail?serviceName=" + param.ServiceName
-		log.Println("[client.GetServiceInfo] request url:", path)
-		responseTmp, errPost := agent.Get(path, nil, clientConfig.TimeoutMs)
+		path := client.buildBasePath(serverConfigs[0]) +
+			constant.SERVICE_BASE_PATH + "/catalog/serviceDetail"
+		params := util.TransformObject2Param(param)
+		log.Println("[client.GetServiceInfo] request url:", path, ",params:", params)
+		responseTmp, errPost := agent.Get(path, nil, clientConfig.TimeoutMs, params)
 		if errPost != nil {
 			err = errPost
 		} else {
@@ -522,5 +462,11 @@ func (client *ServiceClient) GetServiceDetail(param vo.GetServiceDetailParam) (s
 			}
 		}
 	}
+	return
+}
+
+func (client *ServiceClient) buildBasePath(serverConfig constant.ServerConfig) (basePath string) {
+	basePath = "http://" + serverConfig.IpAddr + ":" +
+		strconv.FormatUint(serverConfig.Port, 10) + serverConfig.ContextPath + constant.CONFIG_PATH
 	return
 }
