@@ -25,7 +25,7 @@ func post(path string, header http.Header, timeoutMs uint64, params map[string]s
 			body += key + "=" + value + "&"
 		}
 	}
-	if strings.HasSuffix(body,"&") {
+	if strings.HasSuffix(body, "&") {
 		body = body[:len(body)-1]
 	}
 	request, errNew := http.NewRequest(http.MethodPost, path, strings.NewReader(body))

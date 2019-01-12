@@ -15,7 +15,7 @@ type HttpAgent struct {
 
 func (agent *HttpAgent) Get(path string, header http.Header, timeoutMs uint64,
 	params map[string]string) (response *http.Response, err error) {
-	return get(path, header, timeoutMs,params)
+	return get(path, header, timeoutMs, params)
 }
 
 func (agent *HttpAgent) Post(path string, header http.Header, timeoutMs uint64,
@@ -24,7 +24,7 @@ func (agent *HttpAgent) Post(path string, header http.Header, timeoutMs uint64,
 }
 func (agent *HttpAgent) Delete(path string, header http.Header, timeoutMs uint64,
 	params map[string]string) (response *http.Response, err error) {
-	return delete(path, header, timeoutMs,params)
+	return delete(path, header, timeoutMs, params)
 }
 func (agent *HttpAgent) Put(path string, header http.Header, timeoutMs uint64,
 	params map[string]string) (response *http.Response, err error) {

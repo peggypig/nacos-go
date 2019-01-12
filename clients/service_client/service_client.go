@@ -238,7 +238,7 @@ func (client *ServiceClient) GetService(param vo.GetServiceParam) (service vo.Se
 	if err == nil {
 		path := client.buildBasePath(serverConfigs[0]) + constant.SERVICE_PATH + "/list"
 		params := util.TransformObject2Param(param)
-		log.Println("[client.GetService] request url:", path,",params:",params)
+		log.Println("[client.GetService] request url:", path, ",params:", params)
 		responseTmp, errPost := agent.Get(path, nil, clientConfig.TimeoutMs, params)
 		if errPost != nil {
 			err = errPost
@@ -290,7 +290,7 @@ func (client *ServiceClient) GetServiceInstance(param vo.GetServiceInstanceParam
 		path := client.buildBasePath(serverConfigs[0]) +
 			constant.SERVICE_PATH
 		params := util.TransformObject2Param(param)
-		log.Println("[client.GetServiceInstance] request url:", path,",params:",params)
+		log.Println("[client.GetServiceInstance] request url:", path, ",params:", params)
 		responseTmp, errPost := agent.Get(path, nil, clientConfig.TimeoutMs, params)
 		if errPost != nil {
 			err = errPost
@@ -467,6 +467,6 @@ func (client *ServiceClient) GetServiceDetail(param vo.GetServiceDetailParam) (s
 
 func (client *ServiceClient) buildBasePath(serverConfig constant.ServerConfig) (basePath string) {
 	basePath = "http://" + serverConfig.IpAddr + ":" +
-		strconv.FormatUint(serverConfig.Port, 10) + serverConfig.ContextPath + constant.CONFIG_PATH
+		strconv.FormatUint(serverConfig.Port, 10) + serverConfig.ContextPath
 	return
 }

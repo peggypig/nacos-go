@@ -140,7 +140,7 @@ func (client *ConfigClient) PublishConfig(param vo.ConfigParam) (published bool,
 	}
 	var response *http.Response
 	if err == nil {
-		path := client.buildBasePath(serverConfigs[0]) + constant.CONFIG_PATH
+		path := client.buildBasePath(serverConfigs[0])
 		body := util.TransformObject2Param(param)
 		header := map[string][]string{
 			"Content-Type": {"application/x-www-form-urlencoded"},
@@ -189,7 +189,7 @@ func (client *ConfigClient) DeleteConfig(param vo.ConfigParam) (deleted bool, er
 	}
 	var response *http.Response
 	if err == nil {
-		path := client.buildBasePath(serverConfigs[0]) + constant.CONFIG_PATH
+		path := client.buildBasePath(serverConfigs[0])
 		params := util.TransformObject2Param(param)
 		log.Println("[client.DeleteConfig] request url:", path, ",params:", params)
 		responseTmp, errDelete := agent.Delete(path, nil, clientConfig.TimeoutMs, params)
@@ -277,7 +277,7 @@ func (client *ConfigClient) listenTask() {
 			}
 			// http 请求
 			if errInner == nil {
-				path := client.buildBasePath(serverConfigs[0]) + constant.CONFIG_LISTEN_PATH
+				path := client.buildBasePath(serverConfigs[0]) + "/listener"
 				body := make(map[string]string)
 				body[constant.KEY_LISTEN_CONFIGS] = listeningConfigs
 				header := map[string][]string{

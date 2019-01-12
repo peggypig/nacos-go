@@ -36,8 +36,9 @@ func TestMockIConfigClient_GetConfig(t *testing.T) {
 	}))
 
 	mockINacosClient.EXPECT().SetServerConfig(gomock.Eq([]constant.ServerConfig{{
-		IpAddr: "console.nacos.io",
-		Port:   80,
+		IpAddr:      "console.nacos.io",
+		ContextPath: "/nacos",
+		Port:        80,
 	}}))
 
 	mockINacosClient.EXPECT().GetClientConfig().Times(1).Return(constant.ClientConfig{
@@ -72,8 +73,9 @@ func TestMockIConfigClient_GetConfig(t *testing.T) {
 		ListenInterval: 10 * 1000,
 	})
 	_ = client.SetServerConfig([]constant.ServerConfig{{
-		IpAddr: "console.nacos.io",
-		Port:   80,
+		IpAddr:      "console.nacos.io",
+		Port:        80,
+		ContextPath: "/nacos",
 	}})
 	content, err := client.GetConfig(vo.ConfigParam{
 		DataId: "TEST",
@@ -98,8 +100,9 @@ func TestMockIConfigClient_PublishConfig(t *testing.T) {
 	}))
 
 	mockINacosClient.EXPECT().SetServerConfig(gomock.Eq([]constant.ServerConfig{{
-		IpAddr: "console.nacos.io",
-		Port:   80,
+		IpAddr:      "console.nacos.io",
+		Port:        80,
+		ContextPath: "/nacos",
 	}}))
 
 	mockINacosClient.EXPECT().GetClientConfig().Times(1).Return(constant.ClientConfig{
@@ -108,8 +111,9 @@ func TestMockIConfigClient_PublishConfig(t *testing.T) {
 	}, nil)
 
 	mockINacosClient.EXPECT().GetServerConfig().Times(1).Return([]constant.ServerConfig{{
-		IpAddr: "console.nacos.io",
-		Port:   80,
+		IpAddr:      "console.nacos.io",
+		Port:        80,
+		ContextPath: "/nacos",
 	}}, nil)
 
 	mockINacosClient.EXPECT().GetHttpAgent().Times(1).Return(mockIHttpAgent, nil)
@@ -134,8 +138,9 @@ func TestMockIConfigClient_PublishConfig(t *testing.T) {
 		ListenInterval: 10 * 1000,
 	})
 	_ = client.SetServerConfig([]constant.ServerConfig{{
-		IpAddr: "console.nacos.io",
-		Port:   80,
+		IpAddr:      "console.nacos.io",
+		Port:        80,
+		ContextPath: "/nacos",
 	}})
 	content, err := client.PublishConfig(vo.ConfigParam{
 		DataId:  "TEST",
@@ -161,8 +166,9 @@ func TestMockIConfigClientMockRecorder_DeleteConfig(t *testing.T) {
 	}))
 
 	mockINacosClient.EXPECT().SetServerConfig(gomock.Eq([]constant.ServerConfig{{
-		IpAddr: "console.nacos.io",
-		Port:   80,
+		IpAddr:      "console.nacos.io",
+		Port:        80,
+		ContextPath: "/nacos",
 	}}))
 
 	mockINacosClient.EXPECT().GetClientConfig().Times(1).Return(constant.ClientConfig{
@@ -171,8 +177,9 @@ func TestMockIConfigClientMockRecorder_DeleteConfig(t *testing.T) {
 	}, nil)
 
 	mockINacosClient.EXPECT().GetServerConfig().Times(1).Return([]constant.ServerConfig{{
-		IpAddr: "console.nacos.io",
-		Port:   80,
+		IpAddr:      "console.nacos.io",
+		Port:        80,
+		ContextPath: "/nacos",
 	}}, nil)
 
 	mockINacosClient.EXPECT().GetHttpAgent().Times(1).Return(mockIHttpAgent, nil)
@@ -196,8 +203,9 @@ func TestMockIConfigClientMockRecorder_DeleteConfig(t *testing.T) {
 		ListenInterval: 10 * 1000,
 	})
 	_ = client.SetServerConfig([]constant.ServerConfig{{
-		IpAddr: "console.nacos.io",
-		Port:   80,
+		IpAddr:      "console.nacos.io",
+		Port:        80,
+		ContextPath: "/nacos",
 	}})
 	content, err := client.DeleteConfig(vo.ConfigParam{
 		DataId: "TEST",
@@ -222,8 +230,9 @@ func TestMockIConfigClientMockRecorder_GetConfigContent(t *testing.T) {
 	}))
 
 	mockINacosClient.EXPECT().SetServerConfig(gomock.Eq([]constant.ServerConfig{{
-		IpAddr: "console.nacos.io",
-		Port:   80,
+		IpAddr:      "console.nacos.io",
+		Port:        80,
+		ContextPath: "/nacos",
 	}}))
 
 	mockINacosClient.EXPECT().GetClientConfig().Times(1).Return(constant.ClientConfig{
@@ -232,8 +241,9 @@ func TestMockIConfigClientMockRecorder_GetConfigContent(t *testing.T) {
 	}, nil)
 
 	mockINacosClient.EXPECT().GetServerConfig().Times(1).Return([]constant.ServerConfig{{
-		IpAddr: "console.nacos.io",
-		Port:   80,
+		IpAddr:      "console.nacos.io",
+		Port:        80,
+		ContextPath: "/nacos",
 	}}, nil)
 
 	mockINacosClient.EXPECT().GetHttpAgent().Times(1).Return(mockIHttpAgent, nil)
@@ -257,8 +267,9 @@ func TestMockIConfigClientMockRecorder_GetConfigContent(t *testing.T) {
 		ListenInterval: 10 * 1000,
 	})
 	_ = client.SetServerConfig([]constant.ServerConfig{{
-		IpAddr: "console.nacos.io",
-		Port:   80,
+		IpAddr:      "console.nacos.io",
+		Port:        80,
+		ContextPath: "/nacos",
 	}})
 	content, err := client.GetConfigContent("TEST", "TEST")
 	t.Log(content, err)
@@ -280,8 +291,9 @@ func TestMockIConfigClient_ListenConfig(t *testing.T) {
 	})).Times(1).Return(nil)
 
 	mockINacosClient.EXPECT().SetServerConfig(gomock.Eq([]constant.ServerConfig{{
-		IpAddr: "console.nacos.io",
-		Port:   80,
+		IpAddr:      "console.nacos.io",
+		Port:        80,
+		ContextPath: "/nacos",
 	}})).Times(1).Return(nil)
 
 	mockINacosClient.EXPECT().GetClientConfig().AnyTimes().Return(constant.ClientConfig{
@@ -290,8 +302,9 @@ func TestMockIConfigClient_ListenConfig(t *testing.T) {
 	}, nil)
 
 	mockINacosClient.EXPECT().GetServerConfig().AnyTimes().Return([]constant.ServerConfig{{
-		IpAddr: "console.nacos.io",
-		Port:   80,
+		IpAddr:      "console.nacos.io",
+		Port:        80,
+		ContextPath: "/nacos",
 	}}, nil)
 
 	mockINacosClient.EXPECT().GetHttpAgent().AnyTimes().Return(mockIHttpAgent, nil)
@@ -314,8 +327,9 @@ func TestMockIConfigClient_ListenConfig(t *testing.T) {
 		ListenInterval: 10 * 1000,
 	})
 	_ = client.SetServerConfig([]constant.ServerConfig{{
-		IpAddr: "console.nacos.io",
-		Port:   80,
+		IpAddr:      "console.nacos.io",
+		Port:        80,
+		ContextPath: "/nacos",
 	}})
 	err := client.ListenConfig([]vo.ConfigParam{{
 		DataId: "TEST",
@@ -341,8 +355,9 @@ func TestMockIConfigClient_StopListenConfig(t *testing.T) {
 	})).Times(1).Return(nil)
 
 	mockINacosClient.EXPECT().SetServerConfig(gomock.Eq([]constant.ServerConfig{{
-		IpAddr: "console.nacos.io",
-		Port:   80,
+		IpAddr:      "console.nacos.io",
+		Port:        80,
+		ContextPath: "/nacos",
 	}})).Times(1).Return(nil)
 
 	mockINacosClient.EXPECT().GetClientConfig().AnyTimes().Return(constant.ClientConfig{
@@ -351,8 +366,9 @@ func TestMockIConfigClient_StopListenConfig(t *testing.T) {
 	}, nil)
 
 	mockINacosClient.EXPECT().GetServerConfig().AnyTimes().Return([]constant.ServerConfig{{
-		IpAddr: "console.nacos.io",
-		Port:   80,
+		IpAddr:      "console.nacos.io",
+		Port:        80,
+		ContextPath: "/nacos",
 	}}, nil)
 
 	mockINacosClient.EXPECT().GetHttpAgent().AnyTimes().Return(mockIHttpAgent, nil)
@@ -375,8 +391,9 @@ func TestMockIConfigClient_StopListenConfig(t *testing.T) {
 		ListenInterval: 10 * 1000,
 	})
 	_ = client.SetServerConfig([]constant.ServerConfig{{
-		IpAddr: "console.nacos.io",
-		Port:   80,
+		IpAddr:      "console.nacos.io",
+		Port:        80,
+		ContextPath: "/nacos",
 	}})
 	err := client.ListenConfig([]vo.ConfigParam{{
 		DataId: "TEST",

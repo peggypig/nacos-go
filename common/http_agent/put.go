@@ -9,7 +9,7 @@ import (
 
 /**
 *
-* @description : 
+* @description :
 *
 * @author : codezhang
 *
@@ -25,7 +25,7 @@ func put(path string, header http.Header, timeoutMs uint64, params map[string]st
 			body += key + "=" + value + "&"
 		}
 	}
-	if strings.HasSuffix(body,"&") {
+	if strings.HasSuffix(body, "&") {
 		body = body[:len(body)-1]
 	}
 	request, errNew := http.NewRequest(http.MethodPut, path, strings.NewReader(body))

@@ -10,7 +10,7 @@ import (
 
 /**
 *
-* @description : 
+* @description :
 *
 * @author : codezhang
 *
@@ -46,11 +46,13 @@ func TransformObject2Param(object interface{}) (params map[string]string) {
 						params[tag] = valueOf.Field(i).String()
 					}
 				case reflect.Map:
-					bytes, err := json.Marshal(valueOf.Field(i).Interface())
-					if err != nil {
-						log.Println("[TransformObject2Param]", err)
-					} else {
-						params[tag] = string(bytes)
+					if !valueOf.Field(i).IsNil() {
+						bytes, err := json.Marshal(valueOf.Field(i).Interface())
+						if err != nil {
+							log.Println("[TransformObject2Param]", err)
+						} else {
+							params[tag] = string(bytes)
+						}
 					}
 				case reflect.Slice:
 					if ss, ok := valueOf.Field(i).Interface().([]string); ok {

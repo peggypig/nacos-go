@@ -13,7 +13,7 @@ import (
 
 /**
 *
-* @description : 
+* @description :
 *
 * @author : codezhang
 *
@@ -36,8 +36,9 @@ func TestMockIServiceClient_GetService(t *testing.T) {
 	})).Times(1).Return(nil)
 
 	mockINacosClient.EXPECT().SetServerConfig(gomock.Eq([]constant.ServerConfig{{
-		IpAddr: "console.nacos.io",
-		Port:   80,
+		IpAddr:      "console.nacos.io",
+		Port:        80,
+		ContextPath: "/nacos",
 	}})).Times(1).Return(nil)
 
 	mockINacosClient.EXPECT().GetClientConfig().Times(1).Return(constant.ClientConfig{
@@ -46,16 +47,22 @@ func TestMockIServiceClient_GetService(t *testing.T) {
 	}, nil)
 
 	mockINacosClient.EXPECT().GetServerConfig().Times(1).Return([]constant.ServerConfig{{
-		IpAddr: "console.nacos.io",
-		Port:   80,
+		IpAddr:      "console.nacos.io",
+		Port:        80,
+		ContextPath: "/nacos",
 	}}, nil)
 
 	mockINacosClient.EXPECT().GetHttpAgent().Times(1).Return(mockIHttpAgent, nil)
 
 	mockIHttpAgent.EXPECT().Get(
-		gomock.Eq("http://console.nacos.io:80/nacos/v1/ns/instance/list?serviceName=DEMO&clusters=a"),
+		gomock.Eq("http://console.nacos.io:80/nacos/v1/ns/instance/list"),
 		gomock.AssignableToTypeOf(http.Header{}),
-		gomock.AssignableToTypeOf(uint64(10*1000))).Times(1).
+		gomock.AssignableToTypeOf(uint64(10*1000)),
+		gomock.Eq(map[string]string{
+			"serviceName": "DEMO",
+			"clusters":    "a",
+			"healthyOnly": "false",
+		})).Times(1).
 		Return(http_agent.FakeHttpResponse(200, `{
 	"dom": "DEMO",
 	"cacheMillis": 1000,
@@ -83,8 +90,9 @@ func TestMockIServiceClient_GetService(t *testing.T) {
 		ListenInterval: 10 * 1000,
 	})
 	_ = client.SetServerConfig([]constant.ServerConfig{{
-		IpAddr: "console.nacos.io",
-		Port:   80,
+		IpAddr:      "console.nacos.io",
+		Port:        80,
+		ContextPath: "/nacos",
 	}})
 	service, err := client.GetService(vo.GetServiceParam{
 		ServiceName: "DEMO",
@@ -109,8 +117,9 @@ func TestMockIServiceClient_GetServiceDetail(t *testing.T) {
 	})).Times(1).Return(nil)
 
 	mockINacosClient.EXPECT().SetServerConfig(gomock.Eq([]constant.ServerConfig{{
-		IpAddr: "console.nacos.io",
-		Port:   80,
+		IpAddr:      "console.nacos.io",
+		Port:        80,
+		ContextPath: "/nacos",
 	}})).Times(1).Return(nil)
 
 	mockINacosClient.EXPECT().GetClientConfig().Times(1).Return(constant.ClientConfig{
@@ -119,16 +128,20 @@ func TestMockIServiceClient_GetServiceDetail(t *testing.T) {
 	}, nil)
 
 	mockINacosClient.EXPECT().GetServerConfig().Times(1).Return([]constant.ServerConfig{{
-		IpAddr: "console.nacos.io",
-		Port:   80,
+		IpAddr:      "console.nacos.io",
+		Port:        80,
+		ContextPath: "/nacos",
 	}}, nil)
 
 	mockINacosClient.EXPECT().GetHttpAgent().Times(1).Return(mockIHttpAgent, nil)
 
 	mockIHttpAgent.EXPECT().Get(
-		gomock.Eq("http://console.nacos.io:80/nacos/v1/ns/catalog/serviceDetail?serviceName=DEMO"),
+		gomock.Eq("http://console.nacos.io:80/nacos/v1/ns/catalog/serviceDetail"),
 		gomock.AssignableToTypeOf(http.Header{}),
-		gomock.AssignableToTypeOf(uint64(10*1000))).Times(1).
+		gomock.AssignableToTypeOf(uint64(10*1000)),
+		gomock.Eq(map[string]string{
+			"serviceName": "DEMO",
+		})).Times(1).
 		Return(http_agent.FakeHttpResponse(200, `{
 		"service":{
 			"name":"DEMO",
@@ -148,8 +161,9 @@ func TestMockIServiceClient_GetServiceDetail(t *testing.T) {
 		ListenInterval: 10 * 1000,
 	})
 	_ = client.SetServerConfig([]constant.ServerConfig{{
-		IpAddr: "console.nacos.io",
-		Port:   80,
+		IpAddr:      "console.nacos.io",
+		Port:        80,
+		ContextPath: "/nacos",
 	}})
 	service, err := client.GetServiceDetail(vo.GetServiceDetailParam{
 		ServiceName: "DEMO",
@@ -173,8 +187,9 @@ func TestMockIServiceClient_GetServiceInstance(t *testing.T) {
 	})).Times(1).Return(nil)
 
 	mockINacosClient.EXPECT().SetServerConfig(gomock.Eq([]constant.ServerConfig{{
-		IpAddr: "console.nacos.io",
-		Port:   80,
+		IpAddr:      "console.nacos.io",
+		Port:        80,
+		ContextPath: "/nacos",
 	}})).Times(1).Return(nil)
 
 	mockINacosClient.EXPECT().GetClientConfig().Times(1).Return(constant.ClientConfig{
@@ -183,16 +198,25 @@ func TestMockIServiceClient_GetServiceInstance(t *testing.T) {
 	}, nil)
 
 	mockINacosClient.EXPECT().GetServerConfig().Times(1).Return([]constant.ServerConfig{{
-		IpAddr: "console.nacos.io",
-		Port:   80,
+		IpAddr:      "console.nacos.io",
+		Port:        80,
+		ContextPath: "/nacos",
 	}}, nil)
 
 	mockINacosClient.EXPECT().GetHttpAgent().Times(1).Return(mockIHttpAgent, nil)
 
 	mockIHttpAgent.EXPECT().Get(
-		gomock.Eq("http://console.nacos.io:80/nacos/v1/ns/instance?serviceName=DEMO&ip=10.10.10.10&port=80&healthyOnlyfalse"),
+		gomock.Eq("http://console.nacos.io:80/nacos/v1/ns/instance"),
 		gomock.AssignableToTypeOf(http.Header{}),
-		gomock.AssignableToTypeOf(uint64(10*1000))).Times(1).
+		gomock.AssignableToTypeOf(uint64(10*1000)),
+		gomock.Eq(
+			map[string]string{
+				"serviceName": "DEMO",
+				"ip":          "10.10.10.10",
+				"port":        "80",
+				"healthyOnly": "false",
+			},
+		)).Times(1).
 		Return(http_agent.FakeHttpResponse(200, `{
 	"metadata": {},
 	"instanceId": "10.10.10.10-8888-DEFAULT-DEMO",
@@ -212,8 +236,9 @@ func TestMockIServiceClient_GetServiceInstance(t *testing.T) {
 		ListenInterval: 10 * 1000,
 	})
 	_ = client.SetServerConfig([]constant.ServerConfig{{
-		IpAddr: "console.nacos.io",
-		Port:   80,
+		IpAddr:      "console.nacos.io",
+		Port:        80,
+		ContextPath: "/nacos",
 	}})
 	service, err := client.GetServiceInstance(vo.GetServiceInstanceParam{
 		ServiceName: "DEMO",
@@ -239,8 +264,9 @@ func TestMockIServiceClient_RegisterServiceInstance(t *testing.T) {
 	})).Times(1).Return(nil)
 
 	mockINacosClient.EXPECT().SetServerConfig(gomock.Eq([]constant.ServerConfig{{
-		IpAddr: "console.nacos.io",
-		Port:   80,
+		IpAddr:      "console.nacos.io",
+		Port:        80,
+		ContextPath: "/nacos",
 	}})).Times(1).Return(nil)
 
 	mockINacosClient.EXPECT().GetClientConfig().Times(1).Return(constant.ClientConfig{
@@ -249,8 +275,9 @@ func TestMockIServiceClient_RegisterServiceInstance(t *testing.T) {
 	}, nil)
 
 	mockINacosClient.EXPECT().GetServerConfig().Times(1).Return([]constant.ServerConfig{{
-		IpAddr: "console.nacos.io",
-		Port:   80,
+		IpAddr:      "console.nacos.io",
+		Port:        80,
+		ContextPath: "/nacos",
 	}}, nil)
 
 	mockINacosClient.EXPECT().GetHttpAgent().Times(1).Return(mockIHttpAgent, nil)
@@ -277,8 +304,9 @@ func TestMockIServiceClient_RegisterServiceInstance(t *testing.T) {
 		ListenInterval: 10 * 1000,
 	})
 	_ = client.SetServerConfig([]constant.ServerConfig{{
-		IpAddr: "console.nacos.io",
-		Port:   80,
+		IpAddr:      "console.nacos.io",
+		Port:        80,
+		ContextPath: "/nacos",
 	}})
 	service, err := client.RegisterServiceInstance(vo.RegisterServiceInstanceParam{
 		ServiceName: "DEMO",
@@ -304,8 +332,9 @@ func TestMockIServiceClient_ModifyServiceInstance(t *testing.T) {
 	})).Times(1).Return(nil)
 
 	mockINacosClient.EXPECT().SetServerConfig(gomock.Eq([]constant.ServerConfig{{
-		IpAddr: "console.nacos.io",
-		Port:   80,
+		IpAddr:      "console.nacos.io",
+		Port:        80,
+		ContextPath: "/nacos",
 	}})).Times(1).Return(nil)
 
 	mockINacosClient.EXPECT().GetClientConfig().Times(1).Return(constant.ClientConfig{
@@ -314,8 +343,9 @@ func TestMockIServiceClient_ModifyServiceInstance(t *testing.T) {
 	}, nil)
 
 	mockINacosClient.EXPECT().GetServerConfig().Times(1).Return([]constant.ServerConfig{{
-		IpAddr: "console.nacos.io",
-		Port:   80,
+		IpAddr:      "console.nacos.io",
+		Port:        80,
+		ContextPath: "/nacos",
 	}}, nil)
 
 	mockINacosClient.EXPECT().GetHttpAgent().Times(1).Return(mockIHttpAgent, nil)
@@ -341,8 +371,9 @@ func TestMockIServiceClient_ModifyServiceInstance(t *testing.T) {
 		ListenInterval: 10 * 1000,
 	})
 	_ = client.SetServerConfig([]constant.ServerConfig{{
-		IpAddr: "console.nacos.io",
-		Port:   80,
+		IpAddr:      "console.nacos.io",
+		Port:        80,
+		ContextPath: "/nacos",
 	}})
 	service, err := client.ModifyServiceInstance(vo.ModifyServiceInstanceParam{
 		ServiceName: "DEMO",
@@ -369,8 +400,9 @@ func TestMockIServiceClient_LogoutServiceInstance(t *testing.T) {
 	})).Times(1).Return(nil)
 
 	mockINacosClient.EXPECT().SetServerConfig(gomock.Eq([]constant.ServerConfig{{
-		IpAddr: "console.nacos.io",
-		Port:   80,
+		IpAddr:      "console.nacos.io",
+		Port:        80,
+		ContextPath: "/nacos",
 	}})).Times(1).Return(nil)
 
 	mockINacosClient.EXPECT().GetClientConfig().Times(1).Return(constant.ClientConfig{
@@ -379,16 +411,25 @@ func TestMockIServiceClient_LogoutServiceInstance(t *testing.T) {
 	}, nil)
 
 	mockINacosClient.EXPECT().GetServerConfig().Times(1).Return([]constant.ServerConfig{{
-		IpAddr: "console.nacos.io",
-		Port:   80,
+		IpAddr:      "console.nacos.io",
+		Port:        80,
+		ContextPath: "/nacos",
 	}}, nil)
 
 	mockINacosClient.EXPECT().GetHttpAgent().Times(1).Return(mockIHttpAgent, nil)
 
 	mockIHttpAgent.EXPECT().Delete(
-		gomock.Eq("http://console.nacos.io:80/nacos/v1/ns/instance?serviceName=DEMO&ip=10.0.0.10&port=80&cluster=DEFAULT"),
+		gomock.Eq("http://console.nacos.io:80/nacos/v1/ns/instance"),
 		gomock.AssignableToTypeOf(http.Header{}),
-		gomock.AssignableToTypeOf(uint64(10*1000))).Times(1).
+		gomock.AssignableToTypeOf(uint64(10*1000)),
+		gomock.Eq(
+			map[string]string{
+				"serviceName": "DEMO",
+				"ip":          "10.0.0.10",
+				"port":        "80",
+				"cluster":     "DEFAULT",
+			},
+		)).Times(1).
 		Return(http_agent.FakeHttpResponse(200, `ok`), nil)
 
 	client := ServiceClient{}
@@ -399,8 +440,9 @@ func TestMockIServiceClient_LogoutServiceInstance(t *testing.T) {
 		ListenInterval: 10 * 1000,
 	})
 	_ = client.SetServerConfig([]constant.ServerConfig{{
-		IpAddr: "console.nacos.io",
-		Port:   80,
+		IpAddr:      "console.nacos.io",
+		Port:        80,
+		ContextPath: "/nacos",
 	}})
 	service, err := client.LogoutServiceInstance(vo.LogoutServiceInstanceParam{
 		ServiceName: "DEMO",
@@ -428,8 +470,9 @@ func TestMockIServiceClient_StartBeatTask(t *testing.T) {
 	})).Times(1).Return(nil)
 
 	mockINacosClient.EXPECT().SetServerConfig(gomock.Eq([]constant.ServerConfig{{
-		IpAddr: "console.nacos.io",
-		Port:   80,
+		IpAddr:      "console.nacos.io",
+		Port:        80,
+		ContextPath: "/nacos",
 	}})).Times(1).Return(nil)
 
 	mockINacosClient.EXPECT().GetClientConfig().AnyTimes().Return(constant.ClientConfig{
@@ -439,15 +482,19 @@ func TestMockIServiceClient_StartBeatTask(t *testing.T) {
 	}, nil)
 
 	mockINacosClient.EXPECT().GetServerConfig().AnyTimes().Return([]constant.ServerConfig{{
-		IpAddr: "console.nacos.io",
-		Port:   80,
+		IpAddr:      "console.nacos.io",
+		Port:        80,
+		ContextPath: "/nacos",
 	}}, nil)
 
 	mockINacosClient.EXPECT().GetHttpAgent().AnyTimes().Return(mockIHttpAgent, nil)
 
-	mockIHttpAgent.EXPECT().Get(gomock.Eq("http://console.nacos.io:80/nacos/v1/ns/catalog/serviceDetail?serviceName=DEMO"),
+	mockIHttpAgent.EXPECT().Get(gomock.Eq("http://console.nacos.io:80/nacos/v1/ns/catalog/serviceDetail"),
 		gomock.AssignableToTypeOf(http.Header{}),
-		gomock.AssignableToTypeOf(uint64(10*1000))).AnyTimes().
+		gomock.AssignableToTypeOf(uint64(10*1000)),
+		gomock.Eq(map[string]string{
+			"serviceName": "DEMO",
+		})).AnyTimes().
 		Return(http_agent.FakeHttpResponse(200, `{"service":
 {	"name":"DEMO",
 	"protectThreshold":0.0,
@@ -477,8 +524,9 @@ func TestMockIServiceClient_StartBeatTask(t *testing.T) {
 		BeatInterval:   5 * 1000,
 	})
 	_ = client.SetServerConfig([]constant.ServerConfig{{
-		IpAddr: "console.nacos.io",
-		Port:   80,
+		IpAddr:      "console.nacos.io",
+		Port:        80,
+		ContextPath: "/nacos",
 	}})
 	err := client.StartBeatTask(vo.BeatTaskParam{
 		Dom:     "DEMO",
@@ -507,8 +555,9 @@ func TestMockIServiceClient_StopBeatTask(t *testing.T) {
 	})).Times(1).Return(nil)
 
 	mockINacosClient.EXPECT().SetServerConfig(gomock.Eq([]constant.ServerConfig{{
-		IpAddr: "console.nacos.io",
-		Port:   80,
+		IpAddr:      "console.nacos.io",
+		Port:        80,
+		ContextPath: "/nacos",
 	}})).Times(1).Return(nil)
 
 	mockINacosClient.EXPECT().GetClientConfig().AnyTimes().Return(constant.ClientConfig{
@@ -518,15 +567,19 @@ func TestMockIServiceClient_StopBeatTask(t *testing.T) {
 	}, nil)
 
 	mockINacosClient.EXPECT().GetServerConfig().AnyTimes().Return([]constant.ServerConfig{{
-		IpAddr: "console.nacos.io",
-		Port:   80,
+		IpAddr:      "console.nacos.io",
+		Port:        80,
+		ContextPath: "/nacos",
 	}}, nil)
 
 	mockINacosClient.EXPECT().GetHttpAgent().AnyTimes().Return(mockIHttpAgent, nil)
 
-	mockIHttpAgent.EXPECT().Get(gomock.Eq("http://console.nacos.io:80/nacos/v1/ns/catalog/serviceDetail?serviceName=DEMO"),
+	mockIHttpAgent.EXPECT().Get(gomock.Eq("http://console.nacos.io:80/nacos/v1/ns/catalog/serviceDetail"),
 		gomock.AssignableToTypeOf(http.Header{}),
-		gomock.AssignableToTypeOf(uint64(10*1000))).AnyTimes().
+		gomock.AssignableToTypeOf(uint64(10*1000)),
+		gomock.Eq(map[string]string{
+			"serviceName": "DEMO",
+		})).AnyTimes().
 		Return(http_agent.FakeHttpResponse(200, `{"service":
 {	"name":"DEMO",
 	"protectThreshold":0.0,
@@ -556,8 +609,9 @@ func TestMockIServiceClient_StopBeatTask(t *testing.T) {
 		BeatInterval:   5 * 1000,
 	})
 	_ = client.SetServerConfig([]constant.ServerConfig{{
-		IpAddr: "console.nacos.io",
-		Port:   80,
+		IpAddr:      "console.nacos.io",
+		Port:        80,
+		ContextPath: "/nacos",
 	}})
 	err := client.StartBeatTask(vo.BeatTaskParam{
 		Dom:     "DEMO",
@@ -566,7 +620,7 @@ func TestMockIServiceClient_StopBeatTask(t *testing.T) {
 		Cluster: "DEFAULT",
 	})
 	go func() {
-		time.Sleep(6*time.Second)
+		time.Sleep(6 * time.Second)
 		client.StopBeatTask()
 	}()
 	t.Log(err)

@@ -8,7 +8,7 @@ import (
 
 /**
 *
-* @description : 
+* @description :
 *
 * @author : codezhang
 *
@@ -17,8 +17,8 @@ import (
 
 func TestTransformObject2Param(t *testing.T) {
 	object := vo.GetServiceParam{
-		Tenant:"aaa",
-		HealthyOnly:true,
+		Tenant:      "aaa",
+		HealthyOnly: true,
 	}
 	params := TransformObject2Param(object)
 	fmt.Println(params)
