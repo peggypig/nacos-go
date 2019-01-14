@@ -89,10 +89,6 @@ func (client *ConfigClient) GetConfig(param vo.ConfigParam) (content string, err
 	if len(param.Group) <= 0 {
 		err = errors.New("[client.GetConfig] param.group can not be empty")
 	}
-	var params map[string]string
-	if err == nil {
-		params = util.TransformObject2Param(param)
-	}
 	var clientConfig constant.ClientConfig
 	var serverConfigs []constant.ServerConfig
 	var agent http_agent.IHttpAgent
@@ -100,6 +96,7 @@ func (client *ConfigClient) GetConfig(param vo.ConfigParam) (content string, err
 		clientConfig, serverConfigs, agent, err = client.sync()
 	}
 	if err == nil {
+		params := util.TransformObject2Param(param)
 		for _, serverConfig := range serverConfigs {
 			path := client.buildBasePath(serverConfig)
 			content, err = getConfig(agent, path, clientConfig.TimeoutMs, params)
@@ -109,7 +106,7 @@ func (client *ConfigClient) GetConfig(param vo.ConfigParam) (content string, err
 				if _, ok := err.(*nacos_error.NacosError); ok {
 					break
 				} else {
-					log.Println("[client.GetConfig] get config failed:",err.Error())
+					log.Println("[client.GetConfig] get config failed:", err.Error())
 				}
 			}
 		}
@@ -160,21 +157,32 @@ func (client *ConfigClient) PublishConfig(param vo.ConfigParam) (published bool,
 	if err == nil {
 		clientConfig, serverConfigs, agent, err = client.sync()
 	}
-	var response *http.Response
 	if err == nil {
-		path := client.buildBasePath(serverConfigs[0])
-		body := util.TransformObject2Param(param)
-		header := map[string][]string{
-			"Content-Type": {"application/x-www-form-urlencoded"},
-		}
-		log.Println("[client.PublishConfig] request url:", path, " ;body:", body, " ;header:", header)
-		responseTmp, errPost := agent.Post(path, header, clientConfig.TimeoutMs, body)
-		if errPost != nil {
-			err = errPost
-		} else {
-			response = responseTmp
+		params := util.TransformObject2Param(param)
+		for _, serverConfig := range serverConfigs {
+			path := client.buildBasePath(serverConfig)
+			published, err = publishConfig(agent, path, clientConfig.TimeoutMs, params)
+			if err == nil {
+				break
+			} else {
+				if _, ok := err.(*nacos_error.NacosError); ok {
+					break
+				} else {
+					log.Println("[client.PublishConfig] publish config failed:" + err.Error())
+				}
+			}
 		}
 	}
+	return
+}
+
+func publishConfig(agent http_agent.IHttpAgent, path string, timeoutMs uint64, params map[string]string) (published bool, err error) {
+	header := map[string][]string{
+		"Content-Type": {"application/x-www-form-urlencoded"},
+	}
+	log.Println("[client.PublishConfig] request url:", path, " ;params:", params, " ;header:", header)
+	var response *http.Response
+	response, err = agent.Post(path, header, timeoutMs, params)
 	if err == nil {
 		bytes, errRead := ioutil.ReadAll(response.Body)
 		defer response.Body.Close()
@@ -189,7 +197,10 @@ func (client *ConfigClient) PublishConfig(param vo.ConfigParam) (published bool,
 					err = errors.New("[client.PublishConfig] " + string(bytes))
 				}
 			} else {
-				err = errors.New("[client.PublishConfig] [" + strconv.Itoa(response.StatusCode) + "]" + string(bytes))
+				published = false
+				err = &nacos_error.NacosError{
+					ErrMsg: "[client.PublishConfig] [" + strconv.Itoa(response.StatusCode) + "]" + string(bytes),
+				}
 			}
 		}
 	}
@@ -209,18 +220,29 @@ func (client *ConfigClient) DeleteConfig(param vo.ConfigParam) (deleted bool, er
 	if err == nil {
 		clientConfig, serverConfigs, agent, err = client.sync()
 	}
-	var response *http.Response
 	if err == nil {
-		path := client.buildBasePath(serverConfigs[0])
 		params := util.TransformObject2Param(param)
-		log.Println("[client.DeleteConfig] request url:", path, ",params:", params)
-		responseTmp, errDelete := agent.Delete(path, nil, clientConfig.TimeoutMs, params)
-		if errDelete != nil {
-			err = errDelete
-		} else {
-			response = responseTmp
+		for _, serverConfig := range serverConfigs {
+			path := client.buildBasePath(serverConfig)
+			deleted, err = deleteConfig(agent, path, clientConfig.TimeoutMs, params)
+			if err == nil {
+				break
+			} else {
+				if _, ok := err.(*nacos_error.NacosError); ok {
+					break
+				} else {
+					log.Println("[client.DeleteConfig] deleted config failed:", err.Error())
+				}
+			}
 		}
 	}
+	return
+}
+
+func deleteConfig(agent http_agent.IHttpAgent, path string, timeoutMs uint64, params map[string]string) (deleted bool, err error) {
+	var response *http.Response
+	log.Println("[client.DeleteConfig] request url:", path, ",params:", params)
+	response, err = agent.Delete(path, nil, timeoutMs, params)
 	if err == nil {
 		bytes, errRead := ioutil.ReadAll(response.Body)
 		defer response.Body.Close()
@@ -235,7 +257,10 @@ func (client *ConfigClient) DeleteConfig(param vo.ConfigParam) (deleted bool, er
 					err = errors.New("[client.DeleteConfig] " + string(bytes))
 				}
 			} else {
-				err = errors.New("[client.DeleteConfig] [" + strconv.Itoa(response.StatusCode) + "]" + string(bytes))
+				deleted = false
+				err = &nacos_error.NacosError{
+					ErrMsg: "[client.DeleteConfig] [" + strconv.Itoa(response.StatusCode) + "]" + string(bytes),
+				}
 			}
 		}
 	}
@@ -299,38 +324,28 @@ func (client *ConfigClient) listenTask() {
 			}
 			// http 请求
 			if errInner == nil {
-				path := client.buildBasePath(serverConfigs[0]) + "/listener"
-				body := make(map[string]string)
-				body[constant.KEY_LISTEN_CONFIGS] = listeningConfigs
-				header := map[string][]string{
-					"Content-Type":         {"application/x-www-form-urlencoded"},
-					"Long-Pulling-Timeout": {strconv.FormatUint(clientConfig.ListenInterval, 10)},
-				}
-				log.Println("[client.ListenConfig] request url:", path, " ;body:", body, " ;header:", header)
-				response, errPost := agent.Post(path, header, clientConfig.TimeoutMs, body)
-				if errPost != nil {
-					log.Println(errPost)
-					continue
-				}
+				params := make(map[string]string)
+				params[constant.KEY_LISTEN_CONFIGS] = listeningConfigs
 				var changed string
-				bytes, errRead := ioutil.ReadAll(response.Body)
-				if errRead != nil {
-					log.Println(errRead)
-					continue
-				} else {
-					if response.StatusCode == 200 {
-						if strings.ToLower(strings.Trim(string(bytes), " ")) == "" {
-							log.Println("[client.ListenConfig] no change")
-						} else {
-							changed = string(bytes)
-							log.Print("[client.ListenConfig] config changed:" + changed)
-						}
+				for _, serverConfig := range serverConfigs {
+					path := client.buildBasePath(serverConfig) + "/listener"
+					changedTmp, err := listenConfig(agent, path, clientConfig.TimeoutMs, clientConfig.ListenInterval, params)
+					if err == nil {
+						changed = changedTmp
+						break
 					} else {
-						log.Println("[" + strconv.Itoa(response.StatusCode) + "]" + string(bytes))
+						if _, ok := err.(*nacos_error.NacosError); ok {
+							changed = changedTmp
+							break
+						} else {
+							log.Println("[client.ListenConfig] listen config error:", err.Error())
+						}
 					}
-					_ = response.Body.Close()
 				}
-				if len(changed) > 0 {
+				if strings.ToLower(strings.Trim(changed, " ")) == "" {
+					log.Println("[client.ListenConfig] no change")
+				} else {
+					log.Print("[client.ListenConfig] config changed:" + changed)
 					client.updateLocalConfig(changed)
 				}
 			}
@@ -340,6 +355,33 @@ func (client *ConfigClient) listenTask() {
 			<-timer.C
 		}
 	}()
+}
+
+func listenConfig(agent http_agent.IHttpAgent, path string, timeoutMs uint64, listenInterval uint64,
+	params map[string]string) (changed string, err error) {
+	header := map[string][]string{
+		"Content-Type":         {"application/x-www-form-urlencoded"},
+		"Long-Pulling-Timeout": {strconv.FormatUint(listenInterval, 10)},
+	}
+	log.Println("[client.ListenConfig] request url:", path, " ;params:", params, " ;header:", header)
+	var response *http.Response
+	response, err = agent.Post(path, header, timeoutMs, params)
+	if err == nil {
+		bytes, errRead := ioutil.ReadAll(response.Body)
+		defer response.Body.Close()
+		if errRead != nil {
+			err = errRead
+		} else {
+			if response.StatusCode == 200 {
+				changed = string(bytes)
+			} else {
+				err = &nacos_error.NacosError{
+					ErrMsg: "[" + strconv.Itoa(response.StatusCode) + "]" + string(bytes),
+				}
+			}
+		}
+	}
+	return
 }
 
 func (client *ConfigClient) StopListenConfig() {

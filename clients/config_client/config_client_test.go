@@ -99,15 +99,15 @@ func TestConfigClient_ListenConfig(t *testing.T) {
 		ListenInterval: 10 * 1000,
 	})
 	_ = client.SetServerConfig([]constant.ServerConfig{constant.ServerConfig{
-		IpAddr: "console.nacos.io",
-		Port:   80,
+		IpAddr: "10.0.0.8",
+		Port:   8848,
 	}})
 	err := client.ListenConfig([]vo.ConfigParam{{
-		DataId:  "TESTa",
-		Group:   "TEST",
+		DataId:  "TEST2",
+		Group:   "DEFAULT_GROUP",
 		Content: "2019-01-08 09:57:34",
 	}, {
-		DataId: "TESTa",
+		DataId: "test",
 		Group:  "DEFAULT_GROUP",
 	}})
 	if err != nil {
