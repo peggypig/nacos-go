@@ -72,14 +72,14 @@ Step 1. 构造相关参数
     // 至少一个
     serverConfigs := []constant.ServerConfig{
     	{
-        		IpAddr:      "console1.nacos.io",
-        		ContextPath: "/nacos",
-        		Port:        80,
+    	    IpAddr:      "console1.nacos.io",
+    	    ContextPath: "/nacos",
+    	    Port:        80,
         },
         {
-        		IpAddr:      "console2.nacos.io",
-        		ContextPath: "/nacos",
-        		Port:        80,
+        	IpAddr:      "console2.nacos.io",
+        	ContextPath: "/nacos",
+        	Port:        80,
         },
     }
 ```
@@ -88,7 +88,7 @@ Step 2. 构造客户端
     // 如果参数设置不合法，将抛出error
     client, err := CreateConfigClient(map[string]interface{}{
     	"serverConfigs": serverConfigs,
-    	"clientConfig":clientConfig,
+    	"clientConfig":  clientConfig,
     })
 ```
 Step 3. 目标操作
