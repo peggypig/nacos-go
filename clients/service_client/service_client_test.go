@@ -26,6 +26,9 @@ func TestServiceClient_RegisterServiceInstance(t *testing.T) {
 		TimeoutMs: 30 * 1000,
 	})
 	_ = client.SetServerConfig([]constant.ServerConfig{constant.ServerConfig{
+		IpAddr: "10.0.0.81",
+		Port:   8848,
+	},constant.ServerConfig{
 		IpAddr: "10.0.0.8",
 		Port:   8848,
 	}})
@@ -33,7 +36,7 @@ func TestServiceClient_RegisterServiceInstance(t *testing.T) {
 		Ip:          "10.0.0.10",
 		Port:        8848,
 		ServiceName: "demoservice1",
-		Weight:      -1,
+		Weight:      1000,
 		ClusterName: "a",
 	})
 	if err != nil {
