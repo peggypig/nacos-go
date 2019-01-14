@@ -2,10 +2,10 @@ package service_client
 
 import (
 	"github.com/golang/mock/gomock"
-	"nacos-go/clients/nacos_client"
-	"nacos-go/common/constant"
-	"nacos-go/common/http_agent"
-	"nacos-go/vo"
+	"github.com/peggypig/nacos-go/clients/nacos_client"
+	"github.com/peggypig/nacos-go/common/constant"
+	"github.com/peggypig/nacos-go/common/http_agent"
+	"github.com/peggypig/nacos-go/vo"
 	"net/http"
 	"testing"
 	"time"

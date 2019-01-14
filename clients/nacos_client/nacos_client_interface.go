@@ -1,8 +1,8 @@
 package nacos_client
 
 import (
-	"nacos-go/common/constant"
-	"nacos-go/common/http_agent"
+	"github.com/peggypig/nacos-go/common/constant"
+	"github.com/peggypig/nacos-go/common/http_agent"
 )
 
 /**
@@ -14,7 +14,7 @@ import (
 * @create : 2019-01-09 16:32
 **/
 
-//go:generate mockgen -destination mock_nacos_client_interface.go -package nacos_client nacos-go/clients/nacos_client INacosClient
+//go:generate mockgen -destination mock_nacos_client_interface.go -package nacos_client -source=./nacos_client_interface.go
 
 type INacosClient interface {
 	SetClientConfig(constant.ClientConfig) error

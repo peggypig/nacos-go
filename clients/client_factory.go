@@ -2,10 +2,11 @@ package clients
 
 import (
 	"errors"
-	"nacos-go/clients/config_client"
-	"nacos-go/clients/nacos_client"
-	"nacos-go/clients/service_client"
-	"nacos-go/common/constant"
+	"github.com/peggypig/nacos-go/clients/config_client"
+	"github.com/peggypig/nacos-go/clients/nacos_client"
+	"github.com/peggypig/nacos-go/clients/service_client"
+	"github.com/peggypig/nacos-go/common/constant"
+	"github.com/peggypig/nacos-go/common/http_agent"
 )
 
 /**
@@ -26,6 +27,7 @@ func CreateConfigClient(properties map[string]interface{}) (iClient config_clien
 	}
 	if err == nil {
 		client.INacosClient = nacosClient
+		_ = client.SetHttpAgent(&http_agent.HttpAgent{})
 		iClient = &client
 	}
 	return
@@ -40,6 +42,7 @@ func CreateServiceClient(properties map[string]interface{}) (iClient service_cli
 	}
 	if err == nil {
 		client.INacosClient = nacosClient
+		_ = client.SetHttpAgent(&http_agent.HttpAgent{})
 		iClient = &client
 	}
 	return

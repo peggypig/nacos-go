@@ -1,7 +1,7 @@
 package service_client
 
 import (
-	"nacos-go/vo"
+	"github.com/peggypig/nacos-go/vo"
 )
 
 /**
@@ -13,7 +13,7 @@ import (
 * @create : 2019-01-09 09:56
 **/
 
-//go:generate mockgen -destination mock_service_client_interface.go -package service_client nacos-go/clients/service_client IServiceClient
+//go:generate mockgen -destination mock_service_client_interface.go -package service_client -source=./service_client_interface.go
 
 type IServiceClient interface {
 	// 注册服务实例

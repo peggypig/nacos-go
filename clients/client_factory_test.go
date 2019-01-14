@@ -1,8 +1,8 @@
 package clients
 
 import (
-	"nacos-go/common/constant"
-	"nacos-go/vo"
+	"github.com/peggypig/nacos-go/common/constant"
+	"github.com/peggypig/nacos-go/vo"
 	"testing"
 )
 

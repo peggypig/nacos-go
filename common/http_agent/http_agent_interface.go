@@ -11,7 +11,7 @@ import "net/http"
 * @create : 2019-01-10 11:07
 **/
 
-//go:generate mockgen -destination mock_http_agent_interface.go -package http_agent nacos-go/common/http_agent IHttpAgent
+//go:generate mockgen -destination mock_http_agent_interface.go -package http_agent -source=./http_agent_interface.go
 
 type IHttpAgent interface {
 	Get(path string, header http.Header, timeoutMs uint64, params map[string]string) (response *http.Response, err error)

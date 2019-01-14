@@ -2,8 +2,8 @@ package nacos_client
 
 import (
 	"errors"
-	"nacos-go/common/constant"
-	"nacos-go/common/http_agent"
+	"github.com/peggypig/nacos-go/common/constant"
+	"github.com/peggypig/nacos-go/common/http_agent"
 	"strconv"
 )
 

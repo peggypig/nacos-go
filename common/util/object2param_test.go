@@ -2,7 +2,7 @@ package util
 
 import (
 	"fmt"
-	"nacos-go/vo"
+	"github.com/peggypig/nacos-go/vo"
 	"testing"
 )
 
