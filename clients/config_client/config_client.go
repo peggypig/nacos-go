@@ -7,6 +7,7 @@ import (
 	"nacos-go/clients/nacos_client"
 	"nacos-go/common/constant"
 	"nacos-go/common/http_agent"
+	"nacos-go/common/nacos_error"
 	"nacos-go/common/util"
 	"nacos-go/vo"
 	"net/http"
@@ -88,23 +89,42 @@ func (client *ConfigClient) GetConfig(param vo.ConfigParam) (content string, err
 	if len(param.Group) <= 0 {
 		err = errors.New("[client.GetConfig] param.group can not be empty")
 	}
+	var params map[string]string
+	if err == nil {
+		params = util.TransformObject2Param(param)
+	}
 	var clientConfig constant.ClientConfig
 	var serverConfigs []constant.ServerConfig
 	var agent http_agent.IHttpAgent
 	if err == nil {
 		clientConfig, serverConfigs, agent, err = client.sync()
 	}
-	var response *http.Response
 	if err == nil {
-		path := client.buildBasePath(serverConfigs[0])
-		params := util.TransformObject2Param(param)
-		log.Println("[client.GetConfig] request url :", path, ",params:", params)
-		responseTmp, errGet := agent.Get(path, nil, clientConfig.TimeoutMs, params)
-		if errGet != nil {
-			err = errGet
-		} else {
-			response = responseTmp
+		for _, serverConfig := range serverConfigs {
+			path := client.buildBasePath(serverConfig)
+			content, err = getConfig(agent, path, clientConfig.TimeoutMs, params)
+			if err == nil {
+				break
+			} else {
+				if _, ok := err.(*nacos_error.NacosError); ok {
+					break
+				} else {
+					log.Println("[client.GetConfig] get config failed:",err.Error())
+				}
+			}
 		}
+	}
+	return
+}
+
+func getConfig(agent http_agent.IHttpAgent, path string, timeoutMs uint64, params map[string]string) (content string, err error) {
+	var response *http.Response
+	log.Println("[client.GetConfig] request url :", path, ",params:", params)
+	responseTmp, errGet := agent.Get(path, nil, timeoutMs, params)
+	if errGet != nil {
+		err = errGet
+	} else {
+		response = responseTmp
 	}
 	if err == nil {
 		bytes, errRead := ioutil.ReadAll(response.Body)
@@ -115,7 +135,9 @@ func (client *ConfigClient) GetConfig(param vo.ConfigParam) (content string, err
 			if response.StatusCode == 200 {
 				content = string(bytes)
 			} else {
-				err = errors.New("[client.GetConfig] [" + strconv.Itoa(response.StatusCode) + "]" + string(bytes))
+				err = &nacos_error.NacosError{
+					ErrMsg: "[client.GetConfig] [" + strconv.Itoa(response.StatusCode) + "]" + string(bytes),
+				}
 			}
 		}
 	}
