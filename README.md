@@ -77,9 +77,9 @@ Step 1. 构造相关参数
     	    Port:        80,
         },
         {
-        	IpAddr:      "console2.nacos.io",
-        	ContextPath: "/nacos",
-        	Port:        80,
+            IpAddr:      "console2.nacos.io",
+            ContextPath: "/nacos",
+            Port:        80,
         },
     }
 ```
