@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/peggypig/nacos-go/common/constant"
 	"github.com/peggypig/nacos-go/common/http_agent"
+	"github.com/peggypig/nacos-go/vo"
 	"strconv"
 )
 
@@ -103,5 +104,18 @@ func (client *NacosClient) GetHttpAgent() (agent http_agent.IHttpAgent, err erro
 	} else {
 		agent = client.agent
 	}
+	return
+}
+
+func (client *NacosClient) GetNamespace() (namespaces []vo.Namespace, err error) {
+	return
+}
+func (client *NacosClient) CreateNamespace(param vo.CreateNamespaceParam) (success bool, err error) {
+	return
+}
+func (client *NacosClient) ModifyNamespace(param vo.ModifyNamespaceParam) (success bool, err error) {
+	return
+}
+func (client *NacosClient) DeleteNamespace(param vo.DeleteNamespaceParam) (success bool, err error) {
 	return
 }

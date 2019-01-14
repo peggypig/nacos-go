@@ -3,6 +3,7 @@ package nacos_client
 import (
 	"github.com/peggypig/nacos-go/common/constant"
 	"github.com/peggypig/nacos-go/common/http_agent"
+	"github.com/peggypig/nacos-go/vo"
 )
 
 /**
@@ -23,4 +24,10 @@ type INacosClient interface {
 	GetServerConfig() ([]constant.ServerConfig, error)
 	SetHttpAgent(http_agent.IHttpAgent) error
 	GetHttpAgent() (http_agent.IHttpAgent, error)
+
+	// namespace
+	GetNamespace() ([]vo.Namespace, error)
+	CreateNamespace(param vo.CreateNamespaceParam) (bool, error)
+	ModifyNamespace(param vo.ModifyNamespaceParam) (bool, error)
+	DeleteNamespace(param vo.DeleteNamespaceParam) (bool, error)
 }
