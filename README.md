@@ -27,19 +27,29 @@ Port：nacos服务端口
 ContextPath：nacos服务的上下文路径，默认是“/nacos”  
 <b>注：ServerConfig支持配置多个，在请求出错时，自动切换</b>
 
+#### nacos_client
+1. GetNamespace   
+获取namespace
+2. CreateNamespace  
+创建namespace
+3. ModifyNamespace  
+修改namespace
+4. DeleteNamespace  
+删除namespace
+
 #### config_client
 1. GetConfig    
-从server端获取配置。
+从server端获取配置
 2. GetConfigContent  
-会优先从本地缓存中获取，如果没有，才会从server端获取。
+会优先从本地缓存中获取，如果没有，才会从server端获取
 3. PublishConfig  
-发布配置到server端。
+发布配置到server端
 4. DeleteConfig  
-删除配置。
+删除配置
 5. ListenConfig   
-监听配置变化。
+监听配置变化
 6. StopListenConfig    
-关闭配置监听。
+关闭配置监听
 
 #### service_client
 1. RegisterServiceInstance  
