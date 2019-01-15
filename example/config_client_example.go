@@ -1,11 +1,12 @@
-package config_client
+package example
 
 import (
+	"fmt"
+	"github.com/peggypig/nacos-go/clients/config_client"
 	"github.com/peggypig/nacos-go/clients/nacos_client"
 	"github.com/peggypig/nacos-go/common/constant"
 	"github.com/peggypig/nacos-go/common/http_agent"
 	"github.com/peggypig/nacos-go/vo"
-	"testing"
 	"time"
 )
 
@@ -18,8 +19,8 @@ import (
 * @create : 2019-01-08 12:05
 **/
 
-func TestConfigClient_GetConfig(t *testing.T) {
-	client := ConfigClient{}
+func ExampleConfigClient_GetConfig() {
+	client := config_client.ConfigClient{}
 	client.INacosClient = &nacos_client.NacosClient{}
 	_ = client.SetHttpAgent(&http_agent.HttpAgent{})
 	_ = client.SetServerConfig([]constant.ServerConfig{constant.ServerConfig{
@@ -30,44 +31,35 @@ func TestConfigClient_GetConfig(t *testing.T) {
 		TimeoutMs:      30 * 1000,
 		ListenInterval: 10 * 1000,
 	})
-	content, err := client.GetConfig(vo.ConfigParam{
-		DataId: "TEST",
+	content, _ := client.GetConfig(vo.ConfigParam{
+		DataId: "TEST2",
 		Group:  "DEFAULT_GROUP",
-		Tenant: "bbb",
 	})
-	if err != nil {
-		t.Error(err)
-	} else {
-		t.Log(content)
-	}
+	fmt.Println(content)
 }
 
-func TestConfigClient_PublishConfig(t *testing.T) {
-	client := ConfigClient{}
+func ExampleConfigClient_PublishConfig() {
+	client := config_client.ConfigClient{}
 	client.INacosClient = &nacos_client.NacosClient{}
 	_ = client.SetHttpAgent(&http_agent.HttpAgent{})
 	_ = client.SetServerConfig([]constant.ServerConfig{constant.ServerConfig{
-		IpAddr: "10.0.0.8",
-		Port:   8848,
+		IpAddr: "console.nacos.io",
+		Port:   80,
 	}})
 	_ = client.SetClientConfig(constant.ClientConfig{
 		TimeoutMs:      30 * 1000,
 		ListenInterval: 10 * 1000,
 	})
-	content, err := client.PublishConfig(vo.ConfigParam{
+	content, _ := client.PublishConfig(vo.ConfigParam{
 		DataId:  "TEST2",
 		Group:   "DEFAULT_GROUP",
 		Content: "aaa",
 	})
-	if err != nil {
-		t.Error(err)
-	} else {
-		t.Log(content)
-	}
+	fmt.Println(content)
 }
 
-func TestConfigClient_DeleteConfig(t *testing.T) {
-	client := ConfigClient{}
+func ExampleConfigClient_DeleteConfig() {
+	client := config_client.ConfigClient{}
 	client.INacosClient = &nacos_client.NacosClient{}
 	_ = client.SetHttpAgent(&http_agent.HttpAgent{})
 	_ = client.SetServerConfig([]constant.ServerConfig{constant.ServerConfig{
@@ -78,20 +70,16 @@ func TestConfigClient_DeleteConfig(t *testing.T) {
 		TimeoutMs:      30 * 1000,
 		ListenInterval: 10 * 1000,
 	})
-	content, err := client.DeleteConfig(vo.ConfigParam{
+	content, _ := client.DeleteConfig(vo.ConfigParam{
 		DataId: "TEST",
 		Group:  "DEFAULT_GROUP",
 		Tenant: "bbb",
 	})
-	if err != nil {
-		t.Error(err)
-	} else {
-		t.Log(content)
-	}
+	fmt.Println(content)
 }
 
-func TestConfigClient_ListenConfig(t *testing.T) {
-	client := ConfigClient{}
+func ExampleConfigClient_ListenConfig() {
+	client := config_client.ConfigClient{}
 	client.INacosClient = &nacos_client.NacosClient{}
 	_ = client.SetHttpAgent(&http_agent.HttpAgent{})
 	_ = client.SetClientConfig(constant.ClientConfig{
@@ -99,10 +87,10 @@ func TestConfigClient_ListenConfig(t *testing.T) {
 		ListenInterval: 10 * 1000,
 	})
 	_ = client.SetServerConfig([]constant.ServerConfig{constant.ServerConfig{
-		IpAddr: "10.0.0.8",
-		Port:   8848,
+		IpAddr: "console.nacos.io",
+		Port:   80,
 	}})
-	err := client.ListenConfig([]vo.ConfigParam{{
+	_ = client.ListenConfig([]vo.ConfigParam{{
 		DataId:  "TEST2",
 		Group:   "DEFAULT_GROUP",
 		Content: "2019-01-08 09:57:34",
@@ -110,14 +98,11 @@ func TestConfigClient_ListenConfig(t *testing.T) {
 		DataId: "test",
 		Group:  "DEFAULT_GROUP",
 	}})
-	if err != nil {
-		t.Error(err)
-	}
 	time.Sleep(100 * time.Second)
 }
 
-func TestConfigClient_GetConfigContent(t *testing.T) {
-	client := ConfigClient{}
+func ExampleConfigClient_GetConfigContent() {
+	client := config_client.ConfigClient{}
 	client.INacosClient = &nacos_client.NacosClient{}
 	_ = client.SetHttpAgent(&http_agent.HttpAgent{})
 	_ = client.SetClientConfig(constant.ClientConfig{
@@ -128,10 +113,6 @@ func TestConfigClient_GetConfigContent(t *testing.T) {
 		IpAddr: "console.nacos.io",
 		Port:   80,
 	}})
-	content, err := client.GetConfigContent("TEST", "TEST1")
-	if err != nil {
-		t.Error(err)
-	} else {
-		t.Log(content)
-	}
+	content, _ := client.GetConfigContent("TEST2", "TEST1")
+	fmt.Println(content)
 }

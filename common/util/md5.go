@@ -21,3 +21,6 @@ func Md5(content string) (md string) {
 	md = fmt.Sprintf("%x", h.Sum(nil))
 	return
 }
+
+
+

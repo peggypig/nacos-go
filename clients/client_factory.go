@@ -19,7 +19,8 @@ import (
 **/
 
 // 创建配置相关的客户端
-func CreateConfigClient(properties map[string]interface{}) (iClient config_client.IConfigClient, err error) {
+func CreateConfigClient(properties map[string]interface{}) (iClient config_client.IConfigClient,
+	err error) {
 	client := config_client.ConfigClient{}
 	nacosClient, errSetConfig := setConfig(properties)
 	if errSetConfig != nil {
@@ -34,7 +35,8 @@ func CreateConfigClient(properties map[string]interface{}) (iClient config_clien
 }
 
 // 创建服务发现相关的客户端
-func CreateServiceClient(properties map[string]interface{}) (iClient service_client.IServiceClient, err error) {
+func CreateServiceClient(properties map[string]interface{}) (iClient service_client.IServiceClient,
+	err error) {
 	client := service_client.ServiceClient{}
 	nacosClient, errSetConfig := setConfig(properties)
 	if errSetConfig != nil {
@@ -48,7 +50,8 @@ func CreateServiceClient(properties map[string]interface{}) (iClient service_cli
 	return
 }
 
-func setConfig(properties map[string]interface{}) (iClient nacos_client.INacosClient, err error) {
+func setConfig(properties map[string]interface{}) (iClient nacos_client.INacosClient,
+	err error) {
 	client := nacos_client.NacosClient{}
 	if clientConfigTmp, exist := properties[constant.KEY_CLIENT_CONFIG]; exist {
 		if clientConfig, ok := clientConfigTmp.(constant.ClientConfig); ok {

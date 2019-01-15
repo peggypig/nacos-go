@@ -1,11 +1,12 @@
-package service_client
+package example
 
 import (
+	"fmt"
 	"github.com/peggypig/nacos-go/clients/nacos_client"
+	"github.com/peggypig/nacos-go/clients/service_client"
 	"github.com/peggypig/nacos-go/common/constant"
 	"github.com/peggypig/nacos-go/common/http_agent"
 	"github.com/peggypig/nacos-go/vo"
-	"testing"
 	"time"
 )
 
@@ -18,8 +19,8 @@ import (
 * @create : 2019-01-09 11:12
 **/
 
-func TestServiceClient_RegisterServiceInstance(t *testing.T) {
-	client := ServiceClient{}
+func ExampleServiceClient_RegisterServiceInstance() {
+	client := service_client.ServiceClient{}
 	client.INacosClient = &nacos_client.NacosClient{}
 	_ = client.SetHttpAgent(&http_agent.HttpAgent{})
 	_ = client.SetClientConfig(constant.ClientConfig{
@@ -28,26 +29,22 @@ func TestServiceClient_RegisterServiceInstance(t *testing.T) {
 	_ = client.SetServerConfig([]constant.ServerConfig{constant.ServerConfig{
 		IpAddr: "10.0.0.81",
 		Port:   8848,
-	},constant.ServerConfig{
+	}, constant.ServerConfig{
 		IpAddr: "10.0.0.8",
 		Port:   8848,
 	}})
-	success, err := client.RegisterServiceInstance(vo.RegisterServiceInstanceParam{
+	success, _ := client.RegisterServiceInstance(vo.RegisterServiceInstanceParam{
 		Ip:          "10.0.0.10",
 		Port:        8848,
 		ServiceName: "demoservice1",
 		Weight:      1000,
 		ClusterName: "a",
 	})
-	if err != nil {
-		t.Error(err)
-	} else {
-		t.Log(success)
-	}
+	fmt.Println(success)
 }
 
-func TestServiceClient_ModifyServiceInstance(t *testing.T) {
-	client := ServiceClient{}
+func ExampleServiceClient_ModifyServiceInstance() {
+	client := service_client.ServiceClient{}
 	client.INacosClient = &nacos_client.NacosClient{}
 	_ = client.SetHttpAgent(&http_agent.HttpAgent{})
 	_ = client.SetServerConfig([]constant.ServerConfig{constant.ServerConfig{
@@ -57,22 +54,18 @@ func TestServiceClient_ModifyServiceInstance(t *testing.T) {
 	_ = client.SetClientConfig(constant.ClientConfig{
 		TimeoutMs: 30 * 1000,
 	})
-	success, err := client.RegisterServiceInstance(vo.RegisterServiceInstanceParam{
+	success, _ := client.RegisterServiceInstance(vo.RegisterServiceInstanceParam{
 		Ip:          "10.0.0.10",
 		Port:        8848,
 		ServiceName: "demoservice",
 		Weight:      2,
 		ClusterName: "a",
 	})
-	if err != nil {
-		t.Error(err)
-	} else {
-		t.Log(success)
-	}
+	fmt.Println(success)
 }
 
-func TestServiceClient_GetService(t *testing.T) {
-	client := ServiceClient{}
+func ExampleServiceClient_GetService() {
+	client := service_client.ServiceClient{}
 	client.INacosClient = &nacos_client.NacosClient{}
 	_ = client.SetHttpAgent(&http_agent.HttpAgent{})
 	_ = client.SetServerConfig([]constant.ServerConfig{constant.ServerConfig{
@@ -82,18 +75,14 @@ func TestServiceClient_GetService(t *testing.T) {
 	_ = client.SetClientConfig(constant.ClientConfig{
 		TimeoutMs: 30 * 1000,
 	})
-	service, err := client.GetService(vo.GetServiceParam{
+	service, _ := client.GetService(vo.GetServiceParam{
 		ServiceName: "demoservice",
 	})
-	if err != nil {
-		t.Error(err)
-	} else {
-		t.Logf("%+v", service)
-	}
+	fmt.Println(service)
 }
 
-func TestServiceClient_GetServiceInstance(t *testing.T) {
-	client := ServiceClient{}
+func ExampleServiceClient_GetServiceInstance() {
+	client := service_client.ServiceClient{}
 	client.INacosClient = &nacos_client.NacosClient{}
 	_ = client.SetHttpAgent(&http_agent.HttpAgent{})
 	_ = client.SetServerConfig([]constant.ServerConfig{constant.ServerConfig{
@@ -103,21 +92,17 @@ func TestServiceClient_GetServiceInstance(t *testing.T) {
 	_ = client.SetClientConfig(constant.ClientConfig{
 		TimeoutMs: 30 * 1000,
 	})
-	service, err := client.GetServiceInstance(vo.GetServiceInstanceParam{
+	service, _ := client.GetServiceInstance(vo.GetServiceInstanceParam{
 		ServiceName: "demoservice",
 		Ip:          "10.0.0.10",
 		Port:        8848,
 		Cluster:     "a",
 	})
-	if err != nil {
-		t.Error(err)
-	} else {
-		t.Logf("%+v", service)
-	}
+	fmt.Println(service)
 }
 
-func TestServiceClient_LogoutServiceInstance(t *testing.T) {
-	client := ServiceClient{}
+func ExampleServiceClient_LogoutServiceInstance() {
+	client := service_client.ServiceClient{}
 	client.INacosClient = &nacos_client.NacosClient{}
 	_ = client.SetHttpAgent(&http_agent.HttpAgent{})
 	_ = client.SetServerConfig([]constant.ServerConfig{constant.ServerConfig{
@@ -127,21 +112,17 @@ func TestServiceClient_LogoutServiceInstance(t *testing.T) {
 	_ = client.SetClientConfig(constant.ClientConfig{
 		TimeoutMs: 30 * 1000,
 	})
-	service, err := client.LogoutServiceInstance(vo.LogoutServiceInstanceParam{
+	success, _ := client.LogoutServiceInstance(vo.LogoutServiceInstanceParam{
 		ServiceName: "demoservice",
 		Ip:          "10.0.0.10",
 		Port:        8848,
 		Cluster:     "a",
 	})
-	if err != nil {
-		t.Error(err)
-	} else {
-		t.Logf("%+v", service)
-	}
+	fmt.Println(success)
 }
 
-func TestServiceClient_StartBeatTask(t *testing.T) {
-	client := ServiceClient{}
+func ExampleServiceClient_StartBeatTask() {
+	client := service_client.ServiceClient{}
 	client.INacosClient = &nacos_client.NacosClient{}
 	_ = client.SetHttpAgent(&http_agent.HttpAgent{})
 	_ = client.SetServerConfig([]constant.ServerConfig{constant.ServerConfig{
@@ -152,20 +133,17 @@ func TestServiceClient_StartBeatTask(t *testing.T) {
 		TimeoutMs:    30 * 1000,
 		BeatInterval: 2 * 1000,
 	})
-	err := client.StartBeatTask(vo.BeatTaskParam{
+	_ = client.StartBeatTask(vo.BeatTaskParam{
 		Ip: "10.0.0.10",
 		//Port:    8848,
 		//Cluster: "a",
 		Dom: "demoservice",
 	})
-	if err != nil {
-		t.Error(err)
-	}
-	time.Sleep(100 * time.Second)
+	time.Sleep(20 * time.Second)
 }
 
-func TestServiceClient_GetServiceInfo(t *testing.T) {
-	client := ServiceClient{}
+func ExampleServiceClient_GetServiceInfo() {
+	client := service_client.ServiceClient{}
 	client.INacosClient = &nacos_client.NacosClient{}
 	_ = client.SetHttpAgent(&http_agent.HttpAgent{})
 	_ = client.SetServerConfig([]constant.ServerConfig{constant.ServerConfig{
@@ -176,12 +154,8 @@ func TestServiceClient_GetServiceInfo(t *testing.T) {
 		TimeoutMs:    30 * 1000,
 		BeatInterval: 2 * 1000,
 	})
-	info, err := client.GetServiceDetail(vo.GetServiceDetailParam{
+	info, _ := client.GetServiceDetail(vo.GetServiceDetailParam{
 		ServiceName: "demoservice",
 	})
-	if err != nil {
-		t.Error(err)
-	} else {
-		t.Logf("%+v", info)
-	}
+	fmt.Println(info)
 }

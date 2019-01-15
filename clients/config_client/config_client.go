@@ -54,7 +54,8 @@ func (client *ConfigClient) sync() (clientConfig constant.ClientConfig,
 	return
 }
 
-func (client *ConfigClient) GetConfigContent(dataId string, group string) (content string, err error) {
+func (client *ConfigClient) GetConfigContent(dataId string, group string) (content string,
+	err error) {
 	if len(dataId) <= 0 {
 		err = errors.New("[client.GetConfigContent] dataId param can not be empty")
 	}
@@ -114,7 +115,8 @@ func (client *ConfigClient) GetConfig(param vo.ConfigParam) (content string, err
 	return
 }
 
-func getConfig(agent http_agent.IHttpAgent, path string, timeoutMs uint64, params map[string]string) (content string, err error) {
+func getConfig(agent http_agent.IHttpAgent, path string, timeoutMs uint64,
+	params map[string]string) (content string, err error) {
 	var response *http.Response
 	log.Println("[client.GetConfig] request url :", path, ",params:", params)
 	response, err = agent.Get(path, nil, timeoutMs, params)
@@ -136,7 +138,8 @@ func getConfig(agent http_agent.IHttpAgent, path string, timeoutMs uint64, param
 	return
 }
 
-func (client *ConfigClient) PublishConfig(param vo.ConfigParam) (published bool, err error) {
+func (client *ConfigClient) PublishConfig(param vo.ConfigParam) (published bool,
+	err error) {
 	if len(param.DataId) <= 0 {
 		err = errors.New("[client.PublishConfig] param.dataId can not be empty")
 	}
@@ -171,7 +174,8 @@ func (client *ConfigClient) PublishConfig(param vo.ConfigParam) (published bool,
 	return
 }
 
-func publishConfig(agent http_agent.IHttpAgent, path string, timeoutMs uint64, params map[string]string) (published bool, err error) {
+func publishConfig(agent http_agent.IHttpAgent, path string,
+	timeoutMs uint64, params map[string]string) (published bool, err error) {
 	header := map[string][]string{
 		"Content-Type": {"application/x-www-form-urlencoded"},
 	}
@@ -202,7 +206,8 @@ func publishConfig(agent http_agent.IHttpAgent, path string, timeoutMs uint64, p
 	return
 }
 
-func (client *ConfigClient) DeleteConfig(param vo.ConfigParam) (deleted bool, err error) {
+func (client *ConfigClient) DeleteConfig(param vo.ConfigParam) (deleted bool,
+	err error) {
 	if len(param.DataId) <= 0 {
 		err = errors.New("[client.DeleteConfig] param.dataId can not be empty")
 	}
@@ -234,7 +239,8 @@ func (client *ConfigClient) DeleteConfig(param vo.ConfigParam) (deleted bool, er
 	return
 }
 
-func deleteConfig(agent http_agent.IHttpAgent, path string, timeoutMs uint64, params map[string]string) (deleted bool, err error) {
+func deleteConfig(agent http_agent.IHttpAgent, path string, timeoutMs uint64,
+	params map[string]string) (deleted bool, err error) {
 	var response *http.Response
 	log.Println("[client.DeleteConfig] request url:", path, ",params:", params)
 	response, err = agent.Delete(path, nil, timeoutMs, params)
@@ -352,7 +358,8 @@ func (client *ConfigClient) listenTask() {
 	}()
 }
 
-func listenConfig(agent http_agent.IHttpAgent, path string, timeoutMs uint64, listenInterval uint64,
+func listenConfig(agent http_agent.IHttpAgent, path string,
+	timeoutMs uint64, listenInterval uint64,
 	params map[string]string) (changed string, err error) {
 	header := map[string][]string{
 		"Content-Type":         {"application/x-www-form-urlencoded"},

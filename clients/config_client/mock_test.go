@@ -6,6 +6,7 @@ import (
 	"github.com/peggypig/nacos-go/common/constant"
 	"github.com/peggypig/nacos-go/common/http_agent"
 	"github.com/peggypig/nacos-go/vo"
+	"github.com/stretchr/testify/assert"
 	"net/http"
 	"testing"
 	"time"
@@ -81,7 +82,8 @@ func TestMockIConfigClient_GetConfig(t *testing.T) {
 		DataId: "TEST",
 		Group:  "TEST",
 	})
-	t.Log(content, err)
+	assert.Equal(t, nil, err)
+	assert.Equal(t, "MOCK RESULT", content)
 }
 
 func TestMockIConfigClient_PublishConfig(t *testing.T) {
@@ -147,7 +149,8 @@ func TestMockIConfigClient_PublishConfig(t *testing.T) {
 		Group:   "TEST",
 		Content: "test",
 	})
-	t.Log(content, err)
+	assert.Equal(t, nil, err)
+	assert.Equal(t, true, content)
 }
 
 func TestMockIConfigClientMockRecorder_DeleteConfig(t *testing.T) {
@@ -211,7 +214,8 @@ func TestMockIConfigClientMockRecorder_DeleteConfig(t *testing.T) {
 		DataId: "TEST",
 		Group:  "TEST",
 	})
-	t.Log(content, err)
+	assert.Equal(t, nil, err)
+	assert.Equal(t, true, content)
 }
 
 func TestMockIConfigClientMockRecorder_GetConfigContent(t *testing.T) {
@@ -272,7 +276,8 @@ func TestMockIConfigClientMockRecorder_GetConfigContent(t *testing.T) {
 		ContextPath: "/nacos",
 	}})
 	content, err := client.GetConfigContent("TEST", "TEST")
-	t.Log(content, err)
+	assert.Equal(t, nil, err)
+	assert.Equal(t, "MOCK RESULT", content)
 }
 
 func TestMockIConfigClient_ListenConfig(t *testing.T) {
@@ -288,6 +293,7 @@ func TestMockIConfigClient_ListenConfig(t *testing.T) {
 	mockINacosClient.EXPECT().SetClientConfig(gomock.Eq(constant.ClientConfig{
 		TimeoutMs:      10 * 1000,
 		ListenInterval: 10 * 1000,
+		BeatInterval:   1 * 1000,
 	})).Times(1).Return(nil)
 
 	mockINacosClient.EXPECT().SetServerConfig(gomock.Eq([]constant.ServerConfig{{
@@ -325,6 +331,7 @@ func TestMockIConfigClient_ListenConfig(t *testing.T) {
 	_ = client.SetClientConfig(constant.ClientConfig{
 		TimeoutMs:      10 * 1000,
 		ListenInterval: 10 * 1000,
+		BeatInterval:   1 * 1000,
 	})
 	_ = client.SetServerConfig([]constant.ServerConfig{{
 		IpAddr:      "console.nacos.io",
@@ -335,8 +342,8 @@ func TestMockIConfigClient_ListenConfig(t *testing.T) {
 		DataId: "TEST",
 		Group:  "TEST",
 	}})
-	t.Log(err)
 	time.Sleep(21 * time.Second)
+	assert.Equal(t, nil, err)
 }
 
 func TestMockIConfigClient_StopListenConfig(t *testing.T) {
@@ -403,6 +410,6 @@ func TestMockIConfigClient_StopListenConfig(t *testing.T) {
 		time.Sleep(11 * time.Second)
 		client.StopListenConfig()
 	}()
-	t.Log(err)
 	time.Sleep(21 * time.Second)
+	assert.Equal(t, nil, err)
 }

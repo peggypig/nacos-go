@@ -37,8 +37,8 @@ func (client *NacosClient) SetClientConfig(config constant.ClientConfig) (err er
 	if config.TimeoutMs <= 0 {
 		err = errors.New("[client.SetClientConfig] config.TimeoutMs should > 0")
 	}
-	if err == nil && config.TimeoutMs <= config.ListenInterval {
-		err = errors.New("[client.SetClientConfig] config.TimeoutMs should > config.ListenInterval")
+	if err == nil && config.TimeoutMs < config.ListenInterval {
+		err = errors.New("[client.SetClientConfig] config.TimeoutMs should >= config.ListenInterval")
 	}
 	if err == nil {
 		if config.BeatInterval <= 0 {

@@ -6,6 +6,7 @@ import (
 	"github.com/peggypig/nacos-go/common/constant"
 	"github.com/peggypig/nacos-go/common/http_agent"
 	"github.com/peggypig/nacos-go/vo"
+	"github.com/stretchr/testify/assert"
 	"net/http"
 	"testing"
 	"time"
@@ -98,7 +99,16 @@ func TestMockIServiceClient_GetService(t *testing.T) {
 		ServiceName: "DEMO",
 		Clusters:    []string{"a"},
 	})
-	t.Log(service, err)
+	assert.Equal(t, nil, err)
+	assert.Equal(t, vo.Service(vo.Service{Dom: "DEMO",
+		CacheMillis: 1000, UseSpecifiedURL: false,
+		Hosts: []vo.Host{
+			vo.Host{Valid: true, Marked: false, InstanceId: "10.10.10.10-8888-a-DEMO", Port: 0x22b8,
+				Ip:     "10.10.10.10",
+				Weight: 1, Metadata: map[string]string{}, ClusterName: "",
+				ServiceName: "", Enable: false}}, Checksum: "3bbcf6dd1175203a8afdade0e77a27cd1528787794594",
+		LastRefTime:                                        0x163f2da7aa2, Env: "", Clusters: "",
+		Metadata: map[string]string(nil)}), service)
 }
 
 func TestMockIServiceClient_GetServiceDetail(t *testing.T) {
@@ -168,7 +178,11 @@ func TestMockIServiceClient_GetServiceDetail(t *testing.T) {
 	service, err := client.GetServiceDetail(vo.GetServiceDetailParam{
 		ServiceName: "DEMO",
 	})
-	t.Log(service, err)
+	assert.Equal(t, nil, err)
+	assert.Equal(t, vo.ServiceDetail(vo.ServiceDetail{Service: vo.ServiceInfo{App: "",
+		Group: "", HealthCheckMode: "client", Metadata: map[string]string{},
+		Name: "DEMO", ProtectThreshold: 0, Selector: vo.ServiceSelector{Selector: ""}},
+		Clusters: []vo.Cluster{}}), service)
 }
 
 func TestMockIServiceClient_GetServiceInstance(t *testing.T) {
@@ -245,7 +259,9 @@ func TestMockIServiceClient_GetServiceInstance(t *testing.T) {
 		Ip:          "10.10.10.10",
 		Port:        80,
 	})
-	t.Log(service, err)
+	assert.Equal(t, vo.ServiceInstance(vo.ServiceInstance{InstanceId: "10.10.10.10-8888-DEFAULT-DEMO", Ip: "10.10.10.10",
+		Port: 0x22b8, Metadata: map[string]string{}, Service: "DEMO", Healthy: false, ClusterName: "DEFAULT", Weight: 1}), service)
+	assert.Equal(t, nil, err)
 }
 
 func TestMockIServiceClient_RegisterServiceInstance(t *testing.T) {
@@ -308,12 +324,13 @@ func TestMockIServiceClient_RegisterServiceInstance(t *testing.T) {
 		Port:        80,
 		ContextPath: "/nacos",
 	}})
-	service, err := client.RegisterServiceInstance(vo.RegisterServiceInstanceParam{
+	success, err := client.RegisterServiceInstance(vo.RegisterServiceInstanceParam{
 		ServiceName: "DEMO",
 		Ip:          "10.0.0.10",
 		Port:        80,
 	})
-	t.Log(service, err)
+	assert.Equal(t, nil, err)
+	assert.Equal(t, true, success)
 }
 
 func TestMockIServiceClient_ModifyServiceInstance(t *testing.T) {
@@ -375,13 +392,14 @@ func TestMockIServiceClient_ModifyServiceInstance(t *testing.T) {
 		Port:        80,
 		ContextPath: "/nacos",
 	}})
-	service, err := client.ModifyServiceInstance(vo.ModifyServiceInstanceParam{
+	success, err := client.ModifyServiceInstance(vo.ModifyServiceInstanceParam{
 		ServiceName: "DEMO",
 		Ip:          "10.0.0.10",
 		Port:        80,
 		Cluster:     "DEFAULT",
 	})
-	t.Log(service, err)
+	assert.Equal(t, nil, err)
+	assert.Equal(t, true, success)
 }
 
 func TestMockIServiceClient_LogoutServiceInstance(t *testing.T) {
@@ -444,13 +462,14 @@ func TestMockIServiceClient_LogoutServiceInstance(t *testing.T) {
 		Port:        80,
 		ContextPath: "/nacos",
 	}})
-	service, err := client.LogoutServiceInstance(vo.LogoutServiceInstanceParam{
+	success, err := client.LogoutServiceInstance(vo.LogoutServiceInstanceParam{
 		ServiceName: "DEMO",
 		Ip:          "10.0.0.10",
 		Port:        80,
 		Cluster:     "DEFAULT",
 	})
-	t.Log(service, err)
+	assert.Equal(t, nil, err)
+	assert.Equal(t, true, success)
 }
 
 func TestMockIServiceClient_StartBeatTask(t *testing.T) {
@@ -511,7 +530,7 @@ func TestMockIServiceClient_StartBeatTask(t *testing.T) {
 		gomock.AssignableToTypeOf(uint64(10*1000)),
 		gomock.Eq(map[string]string{
 			"dom":  "DEMO",
-			"beat": `{"ip":"10.0.0.10","port":80,"weight":0,"dom":"DEMO","cluster":"DEFAULT","metaData":null}`,
+			"beat": `{"ip":"10.0.0.10","port":80,"weight":0,"dom":"DEMO","cluster":"DEFAULT","metadata":null}`,
 		})).AnyTimes().
 		Return(http_agent.FakeHttpResponse(200, `beat`), nil)
 
@@ -534,8 +553,8 @@ func TestMockIServiceClient_StartBeatTask(t *testing.T) {
 		Port:    80,
 		Cluster: "DEFAULT",
 	})
-	t.Log(err)
-	time.Sleep(100 * time.Second)
+	time.Sleep(10 * time.Second)
+	assert.Equal(t,nil,err)
 }
 
 func TestMockIServiceClient_StopBeatTask(t *testing.T) {
@@ -596,7 +615,7 @@ func TestMockIServiceClient_StopBeatTask(t *testing.T) {
 		gomock.AssignableToTypeOf(uint64(10*1000)),
 		gomock.Eq(map[string]string{
 			"dom":  "DEMO",
-			"beat": `{"ip":"10.0.0.10","port":80,"weight":0,"dom":"DEMO","cluster":"DEFAULT","metaData":null}`,
+			"beat": `{"ip":"10.0.0.10","port":80,"weight":0,"dom":"DEMO","cluster":"DEFAULT","metadata":null}`,
 		})).AnyTimes().
 		Return(http_agent.FakeHttpResponse(200, `beat`), nil)
 
@@ -623,6 +642,6 @@ func TestMockIServiceClient_StopBeatTask(t *testing.T) {
 		time.Sleep(6 * time.Second)
 		client.StopBeatTask()
 	}()
-	t.Log(err)
 	time.Sleep(21 * time.Second)
+	assert.Equal(t,nil,err)
 }

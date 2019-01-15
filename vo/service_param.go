@@ -61,7 +61,7 @@ type BeatTaskParam struct {
 	Weight   float64           `json:"weight"`
 	Dom      string            `json:"dom"` // Dom == ServiceName
 	Cluster  string            `json:"cluster"`
-	MetaData map[string]string `json:"metaData"`
+	Metadata map[string]string `json:"metadata"`
 }
 
 type GetServiceDetailParam struct {
