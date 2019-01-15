@@ -8,6 +8,7 @@ import (
 	gomock "github.com/golang/mock/gomock"
 	constant "github.com/peggypig/nacos-go/common/constant"
 	http_agent "github.com/peggypig/nacos-go/common/http_agent"
+	vo "github.com/peggypig/nacos-go/vo"
 	reflect "reflect"
 )
 
@@ -119,4 +120,64 @@ func (m *MockINacosClient) GetHttpAgent() (http_agent.IHttpAgent, error) {
 func (mr *MockINacosClientMockRecorder) GetHttpAgent() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetHttpAgent", reflect.TypeOf((*MockINacosClient)(nil).GetHttpAgent))
+}
+
+// GetNamespace mocks base method
+func (m *MockINacosClient) GetNamespace() ([]vo.Namespace, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetNamespace")
+	ret0, _ := ret[0].([]vo.Namespace)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetNamespace indicates an expected call of GetNamespace
+func (mr *MockINacosClientMockRecorder) GetNamespace() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetNamespace", reflect.TypeOf((*MockINacosClient)(nil).GetNamespace))
+}
+
+// CreateNamespace mocks base method
+func (m *MockINacosClient) CreateNamespace(arg0 vo.CreateNamespaceParam) (bool, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateNamespace", arg0)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateNamespace indicates an expected call of CreateNamespace
+func (mr *MockINacosClientMockRecorder) CreateNamespace(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateNamespace", reflect.TypeOf((*MockINacosClient)(nil).CreateNamespace), arg0)
+}
+
+// ModifyNamespace mocks base method
+func (m *MockINacosClient) ModifyNamespace(arg0 vo.ModifyNamespaceParam) (bool, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ModifyNamespace", arg0)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ModifyNamespace indicates an expected call of ModifyNamespace
+func (mr *MockINacosClientMockRecorder) ModifyNamespace(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ModifyNamespace", reflect.TypeOf((*MockINacosClient)(nil).ModifyNamespace), arg0)
+}
+
+// DeleteNamespace mocks base method
+func (m *MockINacosClient) DeleteNamespace(arg0 vo.DeleteNamespaceParam) (bool, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteNamespace", arg0)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DeleteNamespace indicates an expected call of DeleteNamespace
+func (mr *MockINacosClientMockRecorder) DeleteNamespace(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteNamespace", reflect.TypeOf((*MockINacosClient)(nil).DeleteNamespace), arg0)
 }

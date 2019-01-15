@@ -32,6 +32,7 @@ const (
 	CONFIG_LISTEN_PATH   = CONFIG_BASE_PATH + "/configs/listener"
 	SERVICE_BASE_PATH    = "/v1/ns"
 	SERVICE_PATH         = SERVICE_BASE_PATH + "/instance"
+	NAMESPACE_PATH       = "/v1/console/namespaces"
 	SPLIT_CONFIG         = string(rune(1))
 	SPLIT_CONFIG_INNER   = string(rune(2))
 	KEY_LISTEN_CONFIGS   = "Listening-Configs"

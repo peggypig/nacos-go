@@ -27,7 +27,7 @@ type INacosClient interface {
 
 	// namespace
 	GetNamespace() ([]vo.Namespace, error)
-	CreateNamespace(param vo.CreateNamespaceParam) (bool, error)
-	ModifyNamespace(param vo.ModifyNamespaceParam) (bool, error)
-	DeleteNamespace(param vo.DeleteNamespaceParam) (bool, error)
+	CreateNamespace(vo.CreateNamespaceParam) (bool, error)
+	ModifyNamespace(vo.ModifyNamespaceParam) (bool, error)
+	DeleteNamespace(vo.DeleteNamespaceParam) (bool, error)
 }

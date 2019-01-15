@@ -117,12 +117,7 @@ func (client *ConfigClient) GetConfig(param vo.ConfigParam) (content string, err
 func getConfig(agent http_agent.IHttpAgent, path string, timeoutMs uint64, params map[string]string) (content string, err error) {
 	var response *http.Response
 	log.Println("[client.GetConfig] request url :", path, ",params:", params)
-	responseTmp, errGet := agent.Get(path, nil, timeoutMs, params)
-	if errGet != nil {
-		err = errGet
-	} else {
-		response = responseTmp
-	}
+	response, err = agent.Get(path, nil, timeoutMs, params)
 	if err == nil {
 		bytes, errRead := ioutil.ReadAll(response.Body)
 		defer response.Body.Close()

@@ -16,3 +16,9 @@ type Namespace struct {
 	Quota             uint64 `json:"quota"`
 	Type              uint64 `json:"type"`
 }
+
+type GetNamespaceResponse struct {
+	Code    uint64      `json:"code"`
+	Message string      `json:"message"`
+	Data    []Namespace `json:"data"`
+}

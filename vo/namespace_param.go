@@ -15,7 +15,8 @@ type CreateNamespaceParam struct {
 }
 
 type ModifyNamespaceParam struct {
-	NamespaceName string `param:"namespaceName"`
+	Namespace     string `param:"namespace"` // NamespaceId
+	NamespaceName string `param:"namespaceShowName"`
 	NamespaceDesc string `param:"namespaceDesc"`
 }
 
