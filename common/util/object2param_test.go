@@ -24,6 +24,7 @@ type object struct {
 }
 
 func TestTransformObject2Param(t *testing.T) {
+	assert.Equal(t,map[string]string{},TransformObject2Param(nil))
 	obj := object{
 		Name:  "code",
 		Likes: []string{"a", "b"},

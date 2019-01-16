@@ -13,7 +13,7 @@ import (
 * @create : 2019-01-09 09:56
 **/
 
-//go:generate mockgen -destination mock_service_client_interface.go -package service_client -source=./service_client_interface.go
+//go:generate mockgen -destination ../../mock/mock_service_client_interface.go -package mock -source=./service_client_interface.go
 
 type IServiceClient interface {
 	// 注册服务实例

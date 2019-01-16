@@ -410,69 +410,72 @@ func (client *ServiceClient) startBeatTask(param vo.BeatTaskParam) {
 	go func() {
 		for {
 			clientConfig, serverConfigs, agent, errInner := client.sync()
-			// 心跳参数检查
-			if errInner == nil {
-				if len(param.Ip) <= 0 {
-					errInner = errors.New("[client.StartBeatTask] param.Ip can not be empty")
-				}
-				if errInner == nil && len(param.Dom) <= 0 {
-					errInner = errors.New("[client.StartBeatTask] param.Dom can not be empty")
-				}
-			}
-			if errInner != nil {
-				client.mutex.Lock()
-				client.beating = false
-				client.mutex.Unlock()
-				log.Println("client.StartBeatTask failed")
-				break
-			}
-			// 检查service的健康检查模式
-			if errInner == nil {
-				serviceDetail, err := client.GetServiceDetail(vo.GetServiceDetailParam{
-					ServiceName: param.Dom,
-				})
-				if err != nil {
-					log.Println(err)
-				}
-				if serviceDetail.Service.HealthCheckMode != "client" {
-					log.Println("[client.StartBeatTask] service.HealthCheckMode != 'client',sending a heartbeat is invalid")
-				}
-			}
 			// 创建计时器
 			var timer *time.Timer
 			if errInner == nil {
 				timer = time.NewTimer(time.Duration(clientConfig.BeatInterval) * time.Millisecond)
 			}
-			// http 请求
-			if errInner == nil {
-				params := make(map[string]string)
-				params[constant.KEY_DOM] = param.Dom
-				paramBytes, errMarshal := json.Marshal(param)
-				if errMarshal != nil {
-					log.Println(errMarshal)
-					continue
-				}
-				params[constant.KEY_BEAT] = string(paramBytes)
-				for _, serverConfig := range serverConfigs {
-					path := client.buildBasePath(serverConfig) + constant.SERVICE_BASE_PATH + "/api/clientBeat"
-					errBeat := beat(agent, path, clientConfig.TimeoutMs, params)
-					if errBeat == nil {
-						break
-					} else {
-						if _, ok := errBeat.(*nacos_error.NacosError); ok {
-							break
-						} else {
-							log.Print("[client.StartBeatTask] send beat failed:", errBeat.Error())
-						}
-					}
-				}
-			}
+			client.goBeat(clientConfig,serverConfigs,agent,param)
 			if !client.beating {
 				break
 			}
 			<-timer.C
 		}
 	}()
+}
+
+func (client *ServiceClient) goBeat(clientConfig constant.ClientConfig,
+	serverConfigs []constant.ServerConfig, agent http_agent.IHttpAgent, param vo.BeatTaskParam) {
+	var err error
+	// 心跳参数检查
+	if len(param.Ip) <= 0 {
+		err = errors.New("[client.StartBeatTask] param.Ip can not be empty")
+	}
+	if err == nil && len(param.Dom) <= 0 {
+		err = errors.New("[client.StartBeatTask] param.Dom can not be empty")
+	}
+	if err != nil {
+		client.mutex.Lock()
+		client.beating = false
+		client.mutex.Unlock()
+		log.Println("client.StartBeatTask failed")
+	}
+	// 检查service的健康检查模式
+	if err == nil {
+		serviceDetail, err := client.GetServiceDetail(vo.GetServiceDetailParam{
+			ServiceName: param.Dom,
+		})
+		if err != nil {
+			log.Println(err)
+		}
+		if serviceDetail.Service.HealthCheckMode != "client" {
+			log.Println("[client.StartBeatTask] service.HealthCheckMode != 'client',sending a heartbeat is invalid")
+		}
+	}
+	// http 请求
+	if err == nil {
+		params := make(map[string]string)
+		params[constant.KEY_DOM] = param.Dom
+		paramBytes, errMarshal := json.Marshal(param)
+		if errMarshal != nil {
+			log.Println(errMarshal)
+		} else {
+			params[constant.KEY_BEAT] = string(paramBytes)
+			for _, serverConfig := range serverConfigs {
+				path := client.buildBasePath(serverConfig) + constant.SERVICE_BASE_PATH + "/api/clientBeat"
+				errBeat := beat(agent, path, clientConfig.TimeoutMs, params)
+				if errBeat == nil {
+					break
+				} else {
+					if _, ok := errBeat.(*nacos_error.NacosError); ok {
+						break
+					} else {
+						log.Print("[client.StartBeatTask] send beat failed:", errBeat.Error())
+					}
+				}
+			}
+		}
+	}
 }
 
 func beat(agent http_agent.IHttpAgent, path string, timeoutMs uint64,

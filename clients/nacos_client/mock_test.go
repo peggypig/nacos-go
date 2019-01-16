@@ -4,6 +4,7 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/peggypig/nacos-go/common/constant"
 	"github.com/peggypig/nacos-go/common/http_agent"
+	"github.com/peggypig/nacos-go/mock"
 	"github.com/peggypig/nacos-go/vo"
 	"github.com/stretchr/testify/assert"
 	"net/http"
@@ -24,7 +25,7 @@ func TestMockINacosClient_GetNamespace(t *testing.T) {
 	defer func() {
 		ctrl.Finish()
 	}()
-	mockIHttpAgent := http_agent.NewMockIHttpAgent(ctrl)
+	mockIHttpAgent := mock.NewMockIHttpAgent(ctrl)
 	mockIHttpAgent.EXPECT().Get(
 		gomock.Eq("http://console.nacos.io:80/nacos/v1/console/namespaces"),
 		gomock.AssignableToTypeOf(http.Header{}),
@@ -46,11 +47,11 @@ func TestMockINacosClient_GetNamespace(t *testing.T) {
 	}})
 	content, err := client.GetNamespace()
 	assert.Equal(t, []vo.Namespace{{
-		Namespace:"4a1515fa-4818-482a-bc49-e4b1a729659b",
-		NamespaceShowName:"2345",
-		Quota:200,
-		ConfigCount:0,
-		Type:2},
+		Namespace:         "4a1515fa-4818-482a-bc49-e4b1a729659b",
+		NamespaceShowName: "2345",
+		Quota:             200,
+		ConfigCount:       0,
+		Type:              2},
 	}, content)
 	assert.Equal(t, nil, err)
 }
@@ -60,7 +61,7 @@ func TestMockINacosClient_CreateNamespace(t *testing.T) {
 	defer func() {
 		ctrl.Finish()
 	}()
-	mockIHttpAgent := http_agent.NewMockIHttpAgent(ctrl)
+	mockIHttpAgent := mock.NewMockIHttpAgent(ctrl)
 	mockIHttpAgent.EXPECT().Post(
 		gomock.Eq("http://console.nacos.io:80/nacos/v1/console/namespaces"),
 		gomock.AssignableToTypeOf(http.Header{}),
@@ -92,7 +93,7 @@ func TestMockINacosClient_DeleteNamespace(t *testing.T) {
 	defer func() {
 		ctrl.Finish()
 	}()
-	mockIHttpAgent := http_agent.NewMockIHttpAgent(ctrl)
+	mockIHttpAgent := mock.NewMockIHttpAgent(ctrl)
 	mockIHttpAgent.EXPECT().Delete(
 		gomock.Eq("http://console.nacos.io:80/nacos/v1/console/namespaces"),
 		gomock.AssignableToTypeOf(http.Header{}),
@@ -123,7 +124,7 @@ func TestMockINacosClient_ModifyNamespace(t *testing.T) {
 	defer func() {
 		ctrl.Finish()
 	}()
-	mockIHttpAgent := http_agent.NewMockIHttpAgent(ctrl)
+	mockIHttpAgent := mock.NewMockIHttpAgent(ctrl)
 	mockIHttpAgent.EXPECT().Put(
 		gomock.Eq("http://console.nacos.io:80/nacos/v1/console/namespaces"),
 		gomock.AssignableToTypeOf(http.Header{}),
@@ -142,6 +143,28 @@ func TestMockINacosClient_ModifyNamespace(t *testing.T) {
 		Port:        80,
 		ContextPath: "/nacos",
 	}})
+	// 错误参数
+	_, err := client.ModifyNamespace(vo.ModifyNamespaceParam{
+		Namespace:     "5394637d-daf4-4d1c-9075-7c5f733005e8",
+		NamespaceDesc: "nacos-go",
+		NamespaceName: "",
+	})
+	assert.NotNil(t, err)
+	_, err = client.ModifyNamespace(vo.ModifyNamespaceParam{
+		Namespace:     "5394637d-daf4-4d1c-9075-7c5f733005e8",
+		NamespaceDesc: "",
+		NamespaceName: "nacos-go",
+	})
+	assert.NotNil(t, err)
+
+	_, err = client.ModifyNamespace(vo.ModifyNamespaceParam{
+		Namespace:     "",
+		NamespaceDesc: "nacos-go",
+		NamespaceName: "nacos-go",
+	})
+	assert.NotNil(t, err)
+
+	// 正确参数
 	content, err := client.ModifyNamespace(vo.ModifyNamespaceParam{
 		Namespace:     "5394637d-daf4-4d1c-9075-7c5f733005e8",
 		NamespaceDesc: "nacos-go",

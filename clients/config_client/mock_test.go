@@ -2,9 +2,9 @@ package config_client
 
 import (
 	"github.com/golang/mock/gomock"
-	"github.com/peggypig/nacos-go/clients/nacos_client"
 	"github.com/peggypig/nacos-go/common/constant"
 	"github.com/peggypig/nacos-go/common/http_agent"
+	"github.com/peggypig/nacos-go/mock"
 	"github.com/peggypig/nacos-go/vo"
 	"github.com/stretchr/testify/assert"
 	"net/http"
@@ -26,8 +26,8 @@ func TestMockIConfigClient_GetConfig(t *testing.T) {
 	defer func() {
 		ctrl.Finish()
 	}()
-	mockIHttpAgent := http_agent.NewMockIHttpAgent(ctrl)
-	mockINacosClient := nacos_client.NewMockINacosClient(ctrl)
+	mockIHttpAgent := mock.NewMockIHttpAgent(ctrl)
+	mockINacosClient := mock.NewMockINacosClient(ctrl)
 
 	mockINacosClient.EXPECT().SetHttpAgent(gomock.Eq(mockIHttpAgent)).Times(1).Return(nil)
 
@@ -91,8 +91,8 @@ func TestMockIConfigClient_PublishConfig(t *testing.T) {
 	defer func() {
 		ctrl.Finish()
 	}()
-	mockIHttpAgent := http_agent.NewMockIHttpAgent(ctrl)
-	mockINacosClient := nacos_client.NewMockINacosClient(ctrl)
+	mockIHttpAgent := mock.NewMockIHttpAgent(ctrl)
+	mockINacosClient := mock.NewMockINacosClient(ctrl)
 
 	mockINacosClient.EXPECT().SetHttpAgent(gomock.Eq(mockIHttpAgent)).Times(1).Return(nil)
 
@@ -153,13 +153,13 @@ func TestMockIConfigClient_PublishConfig(t *testing.T) {
 	assert.Equal(t, true, content)
 }
 
-func TestMockIConfigClientMockRecorder_DeleteConfig(t *testing.T) {
+func TestMockIConfigClient_DeleteConfig(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer func() {
 		ctrl.Finish()
 	}()
-	mockIHttpAgent := http_agent.NewMockIHttpAgent(ctrl)
-	mockINacosClient := nacos_client.NewMockINacosClient(ctrl)
+	mockIHttpAgent := mock.NewMockIHttpAgent(ctrl)
+	mockINacosClient := mock.NewMockINacosClient(ctrl)
 
 	mockINacosClient.EXPECT().SetHttpAgent(gomock.Eq(mockIHttpAgent)).Times(1).Return(nil)
 
@@ -210,6 +210,20 @@ func TestMockIConfigClientMockRecorder_DeleteConfig(t *testing.T) {
 		Port:        80,
 		ContextPath: "/nacos",
 	}})
+
+	// 错误参数
+	_ , err := client.DeleteConfig(vo.ConfigParam{
+		DataId: "TEST",
+		Group:  "",
+	})
+	assert.NotNil(t,err)
+	_ , err = client.DeleteConfig(vo.ConfigParam{
+		DataId: "",
+		Group:  "TEST",
+	})
+	assert.NotNil(t,err)
+
+	// 正确参数
 	content, err := client.DeleteConfig(vo.ConfigParam{
 		DataId: "TEST",
 		Group:  "TEST",
@@ -218,13 +232,13 @@ func TestMockIConfigClientMockRecorder_DeleteConfig(t *testing.T) {
 	assert.Equal(t, true, content)
 }
 
-func TestMockIConfigClientMockRecorder_GetConfigContent(t *testing.T) {
+func TestMockIConfigClient_GetConfigContent(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer func() {
 		ctrl.Finish()
 	}()
-	mockIHttpAgent := http_agent.NewMockIHttpAgent(ctrl)
-	mockINacosClient := nacos_client.NewMockINacosClient(ctrl)
+	mockIHttpAgent := mock.NewMockIHttpAgent(ctrl)
+	mockINacosClient := mock.NewMockINacosClient(ctrl)
 
 	mockINacosClient.EXPECT().SetHttpAgent(gomock.Eq(mockIHttpAgent)).Times(1).Return(nil)
 
@@ -275,9 +289,27 @@ func TestMockIConfigClientMockRecorder_GetConfigContent(t *testing.T) {
 		Port:        80,
 		ContextPath: "/nacos",
 	}})
+	// 错误参数
+	_, err := client.GetConfigContent("TEST", "")
+	assert.NotNil(t, err)
+	_, err = client.GetConfigContent("", "TEST")
+	assert.NotNil(t, err)
+
+
+
+	// 正确参数 没有localConfigs
 	content, err := client.GetConfigContent("TEST", "TEST")
 	assert.Equal(t, nil, err)
 	assert.Equal(t, "MOCK RESULT", content)
+
+	// 正确参数 有localConfigs
+	client.localConfigs = []vo.ConfigParam{
+		{DataId: "TEST", Group: "TEST",Content:"MOCK RESULT"},
+	}
+	content, err = client.GetConfigContent("TEST", "TEST")
+	assert.Equal(t, nil, err)
+	assert.Equal(t, "MOCK RESULT", content)
+
 }
 
 func TestMockIConfigClient_ListenConfig(t *testing.T) {
@@ -285,8 +317,8 @@ func TestMockIConfigClient_ListenConfig(t *testing.T) {
 	defer func() {
 		ctrl.Finish()
 	}()
-	mockIHttpAgent := http_agent.NewMockIHttpAgent(ctrl)
-	mockINacosClient := nacos_client.NewMockINacosClient(ctrl)
+	mockIHttpAgent := mock.NewMockIHttpAgent(ctrl)
+	mockINacosClient := mock.NewMockINacosClient(ctrl)
 
 	mockINacosClient.EXPECT().SetHttpAgent(gomock.Eq(mockIHttpAgent)).Times(1).Return(nil)
 
@@ -351,8 +383,8 @@ func TestMockIConfigClient_StopListenConfig(t *testing.T) {
 	defer func() {
 		ctrl.Finish()
 	}()
-	mockIHttpAgent := http_agent.NewMockIHttpAgent(ctrl)
-	mockINacosClient := nacos_client.NewMockINacosClient(ctrl)
+	mockIHttpAgent := mock.NewMockIHttpAgent(ctrl)
+	mockINacosClient := mock.NewMockINacosClient(ctrl)
 
 	mockINacosClient.EXPECT().SetHttpAgent(gomock.Eq(mockIHttpAgent)).Times(1).Return(nil)
 

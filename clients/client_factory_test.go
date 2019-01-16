@@ -24,6 +24,10 @@ func TestCreateConfigClient(t *testing.T) {
 		IpAddr: "10.0.0.8",
 		Port:   8848,
 	}
+	_, err := CreateConfigClient(map[string]interface{}{
+
+	})
+	assert.NotNil(t,err)
 	client, err := CreateConfigClient(map[string]interface{}{
 		"serverConfigs": []constant.ServerConfig{
 			cfg,
@@ -46,6 +50,10 @@ func TestCreateServiceClient(t *testing.T) {
 		IpAddr: "10.0.0.8",
 		Port:   8848,
 	}
+	_, err := CreateServiceClient(map[string]interface{}{
+
+	})
+	assert.NotNil(t,err)
 	client, err := CreateServiceClient(map[string]interface{}{
 		"serverConfigs": []constant.ServerConfig{
 			cfg,

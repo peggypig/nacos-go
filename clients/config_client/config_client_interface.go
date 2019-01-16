@@ -13,7 +13,7 @@ import (
 * @create : 2019-01-08 10:03
 **/
 
-//go:generate mockgen -destination mock_config_client_interface.go -package config_client -source=./config_client_interface.go
+//go:generate mockgen -destination ../../mock/mock_config_client_interface.go -package mock -source=./config_client_interface.go
 
 type IConfigClient interface {
 	// 获取配置

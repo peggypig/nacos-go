@@ -15,7 +15,7 @@ import (
 * @create : 2019-01-09 16:32
 **/
 
-//go:generate mockgen -destination mock_nacos_client_interface.go -package nacos_client -source=./nacos_client_interface.go
+//go:generate mockgen -destination ../../mock/mock_nacos_client_interface.go -package mock -source=./nacos_client_interface.go
 
 type INacosClient interface {
 	SetClientConfig(constant.ClientConfig) error

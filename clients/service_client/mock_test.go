@@ -2,9 +2,9 @@ package service_client
 
 import (
 	"github.com/golang/mock/gomock"
-	"github.com/peggypig/nacos-go/clients/nacos_client"
 	"github.com/peggypig/nacos-go/common/constant"
 	"github.com/peggypig/nacos-go/common/http_agent"
+	"github.com/peggypig/nacos-go/mock"
 	"github.com/peggypig/nacos-go/vo"
 	"github.com/stretchr/testify/assert"
 	"net/http"
@@ -26,8 +26,8 @@ func TestMockIServiceClient_GetService(t *testing.T) {
 	defer func() {
 		ctrl.Finish()
 	}()
-	mockIHttpAgent := http_agent.NewMockIHttpAgent(ctrl)
-	mockINacosClient := nacos_client.NewMockINacosClient(ctrl)
+	mockIHttpAgent := mock.NewMockIHttpAgent(ctrl)
+	mockINacosClient := mock.NewMockINacosClient(ctrl)
 
 	mockINacosClient.EXPECT().SetHttpAgent(gomock.Eq(mockIHttpAgent)).Times(1).Return(nil)
 
@@ -116,8 +116,8 @@ func TestMockIServiceClient_GetServiceDetail(t *testing.T) {
 	defer func() {
 		ctrl.Finish()
 	}()
-	mockIHttpAgent := http_agent.NewMockIHttpAgent(ctrl)
-	mockINacosClient := nacos_client.NewMockINacosClient(ctrl)
+	mockIHttpAgent := mock.NewMockIHttpAgent(ctrl)
+	mockINacosClient := mock.NewMockINacosClient(ctrl)
 
 	mockINacosClient.EXPECT().SetHttpAgent(gomock.Eq(mockIHttpAgent)).Times(1).Return(nil)
 
@@ -190,8 +190,8 @@ func TestMockIServiceClient_GetServiceInstance(t *testing.T) {
 	defer func() {
 		ctrl.Finish()
 	}()
-	mockIHttpAgent := http_agent.NewMockIHttpAgent(ctrl)
-	mockINacosClient := nacos_client.NewMockINacosClient(ctrl)
+	mockIHttpAgent := mock.NewMockIHttpAgent(ctrl)
+	mockINacosClient := mock.NewMockINacosClient(ctrl)
 
 	mockINacosClient.EXPECT().SetHttpAgent(gomock.Eq(mockIHttpAgent)).Times(1).Return(nil)
 
@@ -269,8 +269,8 @@ func TestMockIServiceClient_RegisterServiceInstance(t *testing.T) {
 	defer func() {
 		ctrl.Finish()
 	}()
-	mockIHttpAgent := http_agent.NewMockIHttpAgent(ctrl)
-	mockINacosClient := nacos_client.NewMockINacosClient(ctrl)
+	mockIHttpAgent := mock.NewMockIHttpAgent(ctrl)
+	mockINacosClient := mock.NewMockINacosClient(ctrl)
 
 	mockINacosClient.EXPECT().SetHttpAgent(gomock.Eq(mockIHttpAgent)).Times(1).Return(nil)
 
@@ -338,8 +338,8 @@ func TestMockIServiceClient_ModifyServiceInstance(t *testing.T) {
 	defer func() {
 		ctrl.Finish()
 	}()
-	mockIHttpAgent := http_agent.NewMockIHttpAgent(ctrl)
-	mockINacosClient := nacos_client.NewMockINacosClient(ctrl)
+	mockIHttpAgent := mock.NewMockIHttpAgent(ctrl)
+	mockINacosClient := mock.NewMockINacosClient(ctrl)
 
 	mockINacosClient.EXPECT().SetHttpAgent(gomock.Eq(mockIHttpAgent)).Times(1).Return(nil)
 
@@ -407,8 +407,8 @@ func TestMockIServiceClient_LogoutServiceInstance(t *testing.T) {
 	defer func() {
 		ctrl.Finish()
 	}()
-	mockIHttpAgent := http_agent.NewMockIHttpAgent(ctrl)
-	mockINacosClient := nacos_client.NewMockINacosClient(ctrl)
+	mockIHttpAgent := mock.NewMockIHttpAgent(ctrl)
+	mockINacosClient := mock.NewMockINacosClient(ctrl)
 
 	mockINacosClient.EXPECT().SetHttpAgent(gomock.Eq(mockIHttpAgent)).Times(1).Return(nil)
 
@@ -477,8 +477,8 @@ func TestMockIServiceClient_StartBeatTask(t *testing.T) {
 	defer func() {
 		ctrl.Finish()
 	}()
-	mockIHttpAgent := http_agent.NewMockIHttpAgent(ctrl)
-	mockINacosClient := nacos_client.NewMockINacosClient(ctrl)
+	mockIHttpAgent := mock.NewMockIHttpAgent(ctrl)
+	mockINacosClient := mock.NewMockINacosClient(ctrl)
 
 	mockINacosClient.EXPECT().SetHttpAgent(gomock.Eq(mockIHttpAgent)).Times(1).Return(nil)
 
@@ -554,7 +554,7 @@ func TestMockIServiceClient_StartBeatTask(t *testing.T) {
 		Cluster: "DEFAULT",
 	})
 	time.Sleep(10 * time.Second)
-	assert.Equal(t,nil,err)
+	assert.Equal(t, nil, err)
 }
 
 func TestMockIServiceClient_StopBeatTask(t *testing.T) {
@@ -562,8 +562,8 @@ func TestMockIServiceClient_StopBeatTask(t *testing.T) {
 	defer func() {
 		ctrl.Finish()
 	}()
-	mockIHttpAgent := http_agent.NewMockIHttpAgent(ctrl)
-	mockINacosClient := nacos_client.NewMockINacosClient(ctrl)
+	mockIHttpAgent := mock.NewMockIHttpAgent(ctrl)
+	mockINacosClient := mock.NewMockINacosClient(ctrl)
 
 	mockINacosClient.EXPECT().SetHttpAgent(gomock.Eq(mockIHttpAgent)).Times(1).Return(nil)
 
@@ -643,5 +643,5 @@ func TestMockIServiceClient_StopBeatTask(t *testing.T) {
 		client.StopBeatTask()
 	}()
 	time.Sleep(21 * time.Second)
-	assert.Equal(t,nil,err)
+	assert.Equal(t, nil, err)
 }

@@ -286,76 +286,84 @@ func (client *ConfigClient) ListenConfig(params []vo.ConfigParam) (err error) {
 func (client *ConfigClient) listenTask() {
 	go func() {
 		for {
-			clientConfig, serverConfigs, agent, errInner := client.sync()
-			var listeningConfigs string
-			// 检查&拼接监听参数
-			if errInner == nil {
-				for index, param := range client.localConfigs {
-					if len(param.DataId) <= 0 {
-						errInner = errors.New("[client.ListenConfig] params[" + strconv.Itoa(index) + "].DataId can not be empty")
-						break
-					}
-					if len(param.Group) <= 0 {
-						errInner = errors.New("[client.ListenConfig] params[" + strconv.Itoa(index) + "].Group can not be empty")
-						break
-					}
-					var tenant string
-					if len(param.Tenant) > 0 {
-						tenant = param.Tenant
-					}
-					var md5 string
-					if len(param.Content) > 0 {
-						md5 = util.Md5(param.Content)
-					}
-					listeningConfigs += param.DataId + constant.SPLIT_CONFIG_INNER + param.Group + constant.SPLIT_CONFIG_INNER +
-						md5 + constant.SPLIT_CONFIG_INNER + tenant + constant.SPLIT_CONFIG
-				}
-			}
-			if errInner != nil {
-				client.mutex.Lock()
-				client.listening = false
-				client.mutex.Unlock()
-				log.Println("client.ListenConfig failed")
-				break
-			}
+			clientConfig, serverConfigs, agent, err := client.sync()
 			// 创建计时器
 			var timer *time.Timer
-			if errInner == nil {
+			if err == nil {
 				timer = time.NewTimer(time.Duration(clientConfig.ListenInterval) * time.Millisecond)
 			}
-			// http 请求
-			if errInner == nil {
-				params := make(map[string]string)
-				params[constant.KEY_LISTEN_CONFIGS] = listeningConfigs
-				var changed string
-				for _, serverConfig := range serverConfigs {
-					path := client.buildBasePath(serverConfig) + "/listener"
-					changedTmp, err := listenConfig(agent, path, clientConfig.TimeoutMs, clientConfig.ListenInterval, params)
-					if err == nil {
-						changed = changedTmp
-						break
-					} else {
-						if _, ok := err.(*nacos_error.NacosError); ok {
-							changed = changedTmp
-							break
-						} else {
-							log.Println("[client.ListenConfig] listen config error:", err.Error())
-						}
-					}
-				}
-				if strings.ToLower(strings.Trim(changed, " ")) == "" {
-					log.Println("[client.ListenConfig] no change")
-				} else {
-					log.Print("[client.ListenConfig] config changed:" + changed)
-					client.updateLocalConfig(changed)
-				}
-			}
+			client.goListen(clientConfig, serverConfigs, agent)
 			if !client.listening {
 				break
 			}
 			<-timer.C
 		}
 	}()
+}
+
+func (client *ConfigClient) goListen(clientConfig constant.ClientConfig,
+	serverConfigs []constant.ServerConfig, agent http_agent.IHttpAgent) {
+	var listeningConfigs string
+	var err error
+	if len(client.localConfigs) <= 0{
+		err = errors.New("[client.ListenConfig] listen configs can not be empty")
+	}
+	// 检查&拼接监听参数
+	if err == nil {
+		for index, param := range client.localConfigs {
+			if len(param.DataId) <= 0 {
+				err = errors.New("[client.ListenConfig] params[" + strconv.Itoa(index) + "].DataId can not be empty")
+				break
+			}
+			if len(param.Group) <= 0 {
+				err = errors.New("[client.ListenConfig] params[" + strconv.Itoa(index) + "].Group can not be empty")
+				break
+			}
+			var tenant string
+			if len(param.Tenant) > 0 {
+				tenant = param.Tenant
+			}
+			var md5 string
+			if len(param.Content) > 0 {
+				md5 = util.Md5(param.Content)
+			}
+			listeningConfigs += param.DataId + constant.SPLIT_CONFIG_INNER + param.Group + constant.SPLIT_CONFIG_INNER +
+				md5 + constant.SPLIT_CONFIG_INNER + tenant + constant.SPLIT_CONFIG
+		}
+	}
+	if err != nil {
+		client.mutex.Lock()
+		client.listening = false
+		client.mutex.Unlock()
+		log.Println("client.ListenConfig failed")
+	}
+	// http 请求
+	if err == nil {
+		params := make(map[string]string)
+		params[constant.KEY_LISTEN_CONFIGS] = listeningConfigs
+		var changed string
+		for _, serverConfig := range serverConfigs {
+			path := client.buildBasePath(serverConfig) + "/listener"
+			changedTmp, err := listenConfig(agent, path, clientConfig.TimeoutMs, clientConfig.ListenInterval, params)
+			if err == nil {
+				changed = changedTmp
+				break
+			} else {
+				if _, ok := err.(*nacos_error.NacosError); ok {
+					changed = changedTmp
+					break
+				} else {
+					log.Println("[client.ListenConfig] listen config error:", err.Error())
+				}
+			}
+		}
+		if strings.ToLower(strings.Trim(changed, " ")) == "" {
+			log.Println("[client.ListenConfig] no change")
+		} else {
+			log.Print("[client.ListenConfig] config changed:" + changed)
+			client.updateLocalConfig(changed)
+		}
+	}
 }
 
 func listenConfig(agent http_agent.IHttpAgent, path string,
