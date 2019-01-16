@@ -21,19 +21,47 @@ import (
 * @create : 2019-01-15 23:05
 **/
 
-func TestConfigClient_goListen(t *testing.T) {
+var configParam = vo.ConfigParam{
+	DataId: "dataId",
+	Group:  "group",
+}
+
+var clientConfig = constant.ClientConfig{
+	BeatInterval:   10 * 1000,
+	TimeoutMs:      10 * 1000,
+	ListenInterval: 10 * 1000,
+}
+
+var serverConfig = constant.ServerConfig{
+	IpAddr:      "console.nacos.io",
+	ContextPath: "/nacos",
+	Port:        80,
+}
+
+var paramMap = map[string]string{
+	"dataId": "dataId",
+	"group":  "group",
+}
+
+var serverConfigs = []constant.ServerConfig{serverConfig}
+
+func createMockIHttpAgent(ctrl *gomock.Controller) *mock.MockIHttpAgent {
+	mockIHttpAgent := mock.NewMockIHttpAgent(ctrl)
+	return mockIHttpAgent
+}
+
+func TestConfigClient_listenConfigTask(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer func() {
 		ctrl.Finish()
 	}()
-	mockIHttpAgent := mock.NewMockIHttpAgent(ctrl)
-
+	mockIHttpAgent := createMockIHttpAgent(ctrl)
 	mockIHttpAgent.EXPECT().Post(
 		gomock.Eq("http://console.nacos.io:80/nacos/v1/cs/configs/listener"),
 		gomock.AssignableToTypeOf(http.Header{}),
 		gomock.AssignableToTypeOf(uint64(10*1000)),
 		gomock.Eq(map[string]string{
-			"Listening-Configs": "TEST" + constant.SPLIT_CONFIG_INNER + "TEST" + constant.SPLIT_CONFIG_INNER +
+			"Listening-Configs": "dataId" + constant.SPLIT_CONFIG_INNER + "group" + constant.SPLIT_CONFIG_INNER +
 				constant.SPLIT_CONFIG_INNER + constant.SPLIT_CONFIG,
 		})).AnyTimes().
 		Return(http_agent.FakeHttpResponse(200, ``), nil)
@@ -41,27 +69,37 @@ func TestConfigClient_goListen(t *testing.T) {
 	client := ConfigClient{}
 	client.INacosClient = &nacos_client.NacosClient{}
 	_ = client.SetHttpAgent(mockIHttpAgent)
-	cfg := vo.ConfigParam{
-		DataId: "dataId",
-		Group:  "group",
-	}
-	// 错误参数测试
-	client.listening = true
-	client.goListen(constant.ClientConfig{
-		BeatInterval:   10 * 1000,
-		TimeoutMs:      10 * 1000,
-		ListenInterval: 10 * 1000,
-	}, []constant.ServerConfig{}, mockIHttpAgent)
-	assert.Equal(t, false, client.listening)
+
 	// 正确参数测试
 	client.listening = true
-	client.localConfigs = []vo.ConfigParam{cfg}
-	client.goListen(constant.ClientConfig{
-		BeatInterval:   10 * 1000,
-		TimeoutMs:      10 * 1000,
-		ListenInterval: 10 * 1000,
-	}, []constant.ServerConfig{}, mockIHttpAgent)
+	client.localConfigs = []vo.ConfigParam{vo.ConfigParam{
+		DataId:  "dataId",
+		Group:   "group",
+		Tenant:  "aaa",
+		Content: "bbb",
+	}}
+	client.listenConfigTask(clientConfig, []constant.ServerConfig{}, mockIHttpAgent)
 	assert.Equal(t, true, client.listening)
+
+	// 错误参数测试
+	client.listening = true
+	client.localConfigs = []vo.ConfigParam{}
+	client.listenConfigTask(clientConfig, []constant.ServerConfig{}, mockIHttpAgent)
+	assert.Equal(t, false, client.listening)
+
+	client.listening = true
+	client.localConfigs = []vo.ConfigParam{vo.ConfigParam{
+		DataId: "dataId",
+	}}
+	client.listenConfigTask(clientConfig, []constant.ServerConfig{}, mockIHttpAgent)
+	assert.Equal(t, false, client.listening)
+
+	client.listening = true
+	client.localConfigs = []vo.ConfigParam{vo.ConfigParam{
+		Group: "group",
+	}}
+	client.listenConfigTask(clientConfig, []constant.ServerConfig{}, mockIHttpAgent)
+	assert.Equal(t, false, client.listening)
 }
 
 func TestConfigClient_StopListenConfig(t *testing.T) {
@@ -71,26 +109,24 @@ func TestConfigClient_StopListenConfig(t *testing.T) {
 	assert.Equal(t, false, client.listening)
 }
 
+func createMockINacosClient(ctrl *gomock.Controller) *mock.MockINacosClient {
+	mockINacosClient := mock.NewMockINacosClient(ctrl)
+	return mockINacosClient
+}
+
 func TestConfigClient_updateLocalConfig(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer func() {
 		ctrl.Finish()
 	}()
 	mockIHttpAgent := mock.NewMockIHttpAgent(ctrl)
-	mockINacosClient := mock.NewMockINacosClient(ctrl)
+	mockINacosClient := createMockINacosClient(ctrl)
 
 	mockINacosClient.EXPECT().SetHttpAgent(gomock.Eq(mockIHttpAgent)).Times(1).Return(nil)
 
-	mockINacosClient.EXPECT().GetClientConfig().Times(1).Return(constant.ClientConfig{
-		TimeoutMs:      10 * 1000,
-		ListenInterval: 10 * 1000,
-	}, nil)
+	mockINacosClient.EXPECT().GetClientConfig().Times(1).Return(clientConfig, nil)
 
-	mockINacosClient.EXPECT().GetServerConfig().Times(1).Return([]constant.ServerConfig{{
-		IpAddr:      "console.nacos.io",
-		ContextPath: "/nacos",
-		Port:        80,
-	}}, nil)
+	mockINacosClient.EXPECT().GetServerConfig().Times(1).Return(serverConfigs, nil)
 
 	mockINacosClient.EXPECT().GetHttpAgent().Times(1).Return(mockIHttpAgent, nil)
 
@@ -98,10 +134,7 @@ func TestConfigClient_updateLocalConfig(t *testing.T) {
 		gomock.Eq("http://console.nacos.io:80/nacos/v1/cs/configs"),
 		gomock.AssignableToTypeOf(http.Header{}),
 		gomock.AssignableToTypeOf(uint64(10*1000)),
-		gomock.AssignableToTypeOf(map[string]string{
-			"dataId": "TEST",
-			"group":  "TEST",
-		})).
+		gomock.AssignableToTypeOf(paramMap)).
 		Times(1).
 		Return(http_agent.FakeHttpResponse(200, `MOCK RESULT`), nil)
 
@@ -122,16 +155,10 @@ func TestConfigClient_updateLocalConfig(t *testing.T) {
 func TestConfigClient_sync(t *testing.T) {
 	client := ConfigClient{}
 	client.INacosClient = &nacos_client.NacosClient{}
-	cc := constant.ClientConfig{
-		TimeoutMs:      10 * 1000,
-		ListenInterval: 10 * 1000,
-		BeatInterval:   10 * 1000,
-	}
+	cc := clientConfig
 	_ = client.SetClientConfig(cc)
-	sc := constant.ServerConfig{
-		IpAddr: "console.nacos.io",
-		Port:   80,
-	}
+	sc := serverConfig
+	sc.ContextPath = ""
 	_ = client.SetServerConfig([]constant.ServerConfig{
 		sc,
 	})
@@ -151,32 +178,17 @@ func TestConfigClient_deleteConfig(t *testing.T) {
 	defer func() {
 		ctrl.Finish()
 	}()
-	mockIHttpAgent := mock.NewMockIHttpAgent(ctrl)
-	mockINacosClient := mock.NewMockINacosClient(ctrl)
+	mockIHttpAgent, mockINacosClient := createMock(ctrl)
 
 	mockINacosClient.EXPECT().SetHttpAgent(gomock.Eq(mockIHttpAgent)).Times(1).Return(nil)
 
-	mockINacosClient.EXPECT().SetClientConfig(gomock.Eq(constant.ClientConfig{
-		TimeoutMs:      10 * 1000,
-		ListenInterval: 10 * 1000,
-	}))
+	mockINacosClient.EXPECT().SetClientConfig(gomock.Eq(clientConfig))
 
-	mockINacosClient.EXPECT().SetServerConfig(gomock.Eq([]constant.ServerConfig{{
-		IpAddr:      "console.nacos.io",
-		Port:        80,
-		ContextPath: "/nacos",
-	}}))
+	mockINacosClient.EXPECT().SetServerConfig(gomock.Eq(serverConfigs))
 
-	mockINacosClient.EXPECT().GetClientConfig().Times(1).Return(constant.ClientConfig{
-		TimeoutMs:      10 * 1000,
-		ListenInterval: 10 * 1000,
-	}, nil)
+	mockINacosClient.EXPECT().GetClientConfig().Times(1).Return(clientConfig, nil)
 
-	mockINacosClient.EXPECT().GetServerConfig().Times(1).Return([]constant.ServerConfig{{
-		IpAddr:      "console.nacos.io",
-		Port:        80,
-		ContextPath: "/nacos",
-	}}, nil)
+	mockINacosClient.EXPECT().GetServerConfig().Times(1).Return(serverConfigs, nil)
 
 	mockINacosClient.EXPECT().GetHttpAgent().Times(1).Return(mockIHttpAgent, nil)
 
@@ -184,31 +196,211 @@ func TestConfigClient_deleteConfig(t *testing.T) {
 		gomock.Eq("http://console.nacos.io:80/nacos/v1/cs/configs"),
 		gomock.AssignableToTypeOf(http.Header{}),
 		gomock.AssignableToTypeOf(uint64(10*1000)),
-		gomock.Eq(map[string]string{
-			"dataId": "TEST",
-			"group":  "TEST",
-		})).
+		gomock.Eq(paramMap)).
 		Times(1).
 		Return(http_agent.FakeHttpResponse(404, `config not found`), nil)
 
 	client := ConfigClient{}
 	client.INacosClient = mockINacosClient
 	_ = client.SetHttpAgent(mockIHttpAgent)
-	_ = client.SetClientConfig(constant.ClientConfig{
-		TimeoutMs:      10 * 1000,
-		ListenInterval: 10 * 1000,
-	})
-	_ = client.SetServerConfig([]constant.ServerConfig{{
-		IpAddr:      "console.nacos.io",
-		Port:        80,
-		ContextPath: "/nacos",
-	}})
+	_ = client.SetClientConfig(clientConfig)
+	_ = client.SetServerConfig(serverConfigs)
 
 	// 正确参数
-	content, err := client.DeleteConfig(vo.ConfigParam{
+	content, err := client.DeleteConfig(configParam)
+	assert.NotNil(t, err)
+	assert.Equal(t, false, content)
+}
+
+func TestMockIConfigClient_GetConfig(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer func() {
+		ctrl.Finish()
+	}()
+	mockIHttpAgent, mockINacosClient := createMock(ctrl)
+
+	mockINacosClient.EXPECT().SetHttpAgent(gomock.Eq(mockIHttpAgent)).Times(1).Return(nil)
+
+	mockINacosClient.EXPECT().SetClientConfig(gomock.Eq(clientConfig))
+
+	mockINacosClient.EXPECT().SetServerConfig(gomock.Eq(serverConfigs))
+
+	mockINacosClient.EXPECT().GetClientConfig().Times(1).Return(clientConfig, nil)
+
+	mockINacosClient.EXPECT().GetServerConfig().Times(1).Return(serverConfigs, nil)
+
+	mockINacosClient.EXPECT().GetHttpAgent().Times(1).Return(mockIHttpAgent, nil)
+
+	mockIHttpAgent.EXPECT().Get(
+		gomock.Eq("http://console.nacos.io:80/nacos/v1/cs/configs"),
+		gomock.AssignableToTypeOf(http.Header{}),
+		gomock.AssignableToTypeOf(uint64(10*1000)),
+		gomock.Eq(paramMap)).
+		Times(1).
+		Return(http_agent.FakeHttpResponse(200, `MOCK RESULT`), nil)
+
+	client := ConfigClient{}
+	client.INacosClient = mockINacosClient
+	_ = client.SetHttpAgent(mockIHttpAgent)
+	_ = client.SetClientConfig(clientConfig)
+	_ = client.SetServerConfig(serverConfigs)
+	content, err := client.GetConfig(configParam)
+	assert.Equal(t, nil, err)
+	assert.Equal(t, "MOCK RESULT", content)
+}
+
+func TestMockIConfigClient_PublishConfig(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer func() {
+		ctrl.Finish()
+	}()
+	mockIHttpAgent, mockINacosClient := createMock(ctrl)
+
+	mockINacosClient.EXPECT().SetHttpAgent(gomock.Eq(mockIHttpAgent)).Times(1).Return(nil)
+
+	mockINacosClient.EXPECT().SetClientConfig(gomock.Eq(clientConfig))
+
+	mockINacosClient.EXPECT().SetServerConfig(gomock.Eq(serverConfigs))
+
+	mockINacosClient.EXPECT().GetClientConfig().Times(1).Return(clientConfig, nil)
+
+	mockINacosClient.EXPECT().GetServerConfig().Times(1).Return(serverConfigs, nil)
+
+	mockINacosClient.EXPECT().GetHttpAgent().Times(1).Return(mockIHttpAgent, nil)
+
+	mockIHttpAgent.EXPECT().Post(
+		gomock.Eq("http://console.nacos.io:80/nacos/v1/cs/configs"),
+		gomock.AssignableToTypeOf(http.Header{}),
+		gomock.AssignableToTypeOf(uint64(10*1000)),
+		gomock.Eq(map[string]string{
+			"dataId":  "TEST",
+			"group":   "TEST",
+			"content": "test",
+		})).
+		Times(1).
+		Return(http_agent.FakeHttpResponse(200, `true`), nil)
+
+	client := ConfigClient{}
+	client.INacosClient = mockINacosClient
+	_ = client.SetHttpAgent(mockIHttpAgent)
+	_ = client.SetClientConfig(clientConfig)
+	_ = client.SetServerConfig(serverConfigs)
+	content, err := client.PublishConfig(vo.ConfigParam{
+		DataId:  "TEST",
+		Group:   "TEST",
+		Content: "test",
+	})
+	assert.Equal(t, nil, err)
+	assert.Equal(t, true, content)
+}
+
+func createMock(ctrl *gomock.Controller) (*mock.MockIHttpAgent, *mock.MockINacosClient) {
+	mockIHttpAgent := mock.NewMockIHttpAgent(ctrl)
+	mockINacosClient := mock.NewMockINacosClient(ctrl)
+	return mockIHttpAgent, mockINacosClient
+}
+
+func TestMockIConfigClient_DeleteConfig(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer func() {
+		ctrl.Finish()
+	}()
+	mockIHttpAgent, mockINacosClient := createMock(ctrl)
+
+	mockINacosClient.EXPECT().SetHttpAgent(gomock.Eq(mockIHttpAgent)).Times(1).Return(nil)
+
+	mockINacosClient.EXPECT().SetClientConfig(gomock.Eq(clientConfig))
+
+	mockINacosClient.EXPECT().SetServerConfig(gomock.Eq(serverConfigs))
+
+	mockINacosClient.EXPECT().GetClientConfig().Times(1).Return(clientConfig, nil)
+
+	mockINacosClient.EXPECT().GetServerConfig().Times(1).Return(serverConfigs, nil)
+
+	mockINacosClient.EXPECT().GetHttpAgent().Times(1).Return(mockIHttpAgent, nil)
+
+	mockIHttpAgent.EXPECT().Delete(
+		gomock.Eq("http://console.nacos.io:80/nacos/v1/cs/configs"),
+		gomock.AssignableToTypeOf(http.Header{}),
+		gomock.AssignableToTypeOf(uint64(10*1000)),
+		gomock.Eq(paramMap)).
+		Times(1).
+		Return(http_agent.FakeHttpResponse(200, `true`), nil)
+
+	client := ConfigClient{}
+	client.INacosClient = mockINacosClient
+	_ = client.SetHttpAgent(mockIHttpAgent)
+	_ = client.SetClientConfig(clientConfig)
+	_ = client.SetServerConfig(serverConfigs)
+
+	// 错误参数
+	_, err := client.DeleteConfig(vo.ConfigParam{
 		DataId: "TEST",
+		Group:  "",
+	})
+	assert.NotNil(t, err)
+	_, err = client.DeleteConfig(vo.ConfigParam{
+		DataId: "",
 		Group:  "TEST",
 	})
-	assert.NotNil(t,  err)
-	assert.Equal(t, false, content)
+	assert.NotNil(t, err)
+
+	// 正确参数
+	content, err := client.DeleteConfig(configParam)
+	assert.Equal(t, nil, err)
+	assert.Equal(t, true, content)
+}
+
+func TestMockIConfigClient_GetConfigContent(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer func() {
+		ctrl.Finish()
+	}()
+	mockIHttpAgent := mock.NewMockIHttpAgent(ctrl)
+	mockINacosClient := mock.NewMockINacosClient(ctrl)
+
+	mockINacosClient.EXPECT().SetHttpAgent(gomock.Eq(mockIHttpAgent)).Times(1).Return(nil)
+
+	mockINacosClient.EXPECT().SetClientConfig(gomock.Eq(clientConfig))
+
+	mockINacosClient.EXPECT().SetServerConfig(gomock.Eq(serverConfigs))
+
+	mockINacosClient.EXPECT().GetClientConfig().Times(1).Return(clientConfig, nil)
+
+	mockINacosClient.EXPECT().GetServerConfig().Times(1).Return(serverConfigs, nil)
+
+	mockINacosClient.EXPECT().GetHttpAgent().Times(1).Return(mockIHttpAgent, nil)
+
+	mockIHttpAgent.EXPECT().Get(
+		gomock.Eq("http://console.nacos.io:80/nacos/v1/cs/configs"),
+		gomock.AssignableToTypeOf(http.Header{}),
+		gomock.AssignableToTypeOf(uint64(10*1000)),
+		gomock.Eq(paramMap)).
+		Times(1).
+		Return(http_agent.FakeHttpResponse(200, `MOCK RESULT`), nil)
+
+	client := ConfigClient{}
+	client.INacosClient = mockINacosClient
+	_ = client.SetHttpAgent(mockIHttpAgent)
+	_ = client.SetClientConfig(clientConfig)
+	_ = client.SetServerConfig(serverConfigs)
+	// 错误参数
+	_, err := client.GetConfigContent("dataId", "")
+	assert.NotNil(t, err)
+	_, err = client.GetConfigContent("", "dataId")
+	assert.NotNil(t, err)
+
+	// 正确参数 没有localConfigs
+	content, err := client.GetConfigContent("dataId", "group")
+	assert.Equal(t, nil, err)
+	assert.Equal(t, "MOCK RESULT", content)
+
+	// 正确参数 有localConfigs
+	client.localConfigs = []vo.ConfigParam{
+		{DataId: "dataId", Group: "group", Content: "MOCK RESULT"},
+	}
+	content, err = client.GetConfigContent("dataId", "group")
+	assert.Equal(t, nil, err)
+	assert.Equal(t, "MOCK RESULT", content)
+
 }

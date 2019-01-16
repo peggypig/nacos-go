@@ -278,12 +278,12 @@ func (client *ConfigClient) ListenConfig(params []vo.ConfigParam) (err error) {
 	if err == nil {
 		client.listening = true
 		client.localConfigs = params
-		client.listenTask()
+		client.listenConfig()
 	}
 	return
 }
 
-func (client *ConfigClient) listenTask() {
+func (client *ConfigClient) listenConfig() {
 	go func() {
 		for {
 			clientConfig, serverConfigs, agent, err := client.sync()
@@ -292,7 +292,7 @@ func (client *ConfigClient) listenTask() {
 			if err == nil {
 				timer = time.NewTimer(time.Duration(clientConfig.ListenInterval) * time.Millisecond)
 			}
-			client.goListen(clientConfig, serverConfigs, agent)
+			client.listenConfigTask(clientConfig, serverConfigs, agent)
 			if !client.listening {
 				break
 			}
@@ -301,7 +301,7 @@ func (client *ConfigClient) listenTask() {
 	}()
 }
 
-func (client *ConfigClient) goListen(clientConfig constant.ClientConfig,
+func (client *ConfigClient) listenConfigTask(clientConfig constant.ClientConfig,
 	serverConfigs []constant.ServerConfig, agent http_agent.IHttpAgent) {
 	var listeningConfigs string
 	var err error

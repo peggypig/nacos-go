@@ -415,7 +415,7 @@ func (client *ServiceClient) startBeatTask(param vo.BeatTaskParam) {
 			if errInner == nil {
 				timer = time.NewTimer(time.Duration(clientConfig.BeatInterval) * time.Millisecond)
 			}
-			client.goBeat(clientConfig,serverConfigs,agent,param)
+			client.beatTask(clientConfig,serverConfigs,agent,param)
 			if !client.beating {
 				break
 			}
@@ -424,7 +424,7 @@ func (client *ServiceClient) startBeatTask(param vo.BeatTaskParam) {
 	}()
 }
 
-func (client *ServiceClient) goBeat(clientConfig constant.ClientConfig,
+func (client *ServiceClient) beatTask(clientConfig constant.ClientConfig,
 	serverConfigs []constant.ServerConfig, agent http_agent.IHttpAgent, param vo.BeatTaskParam) {
 	var err error
 	// 心跳参数检查
