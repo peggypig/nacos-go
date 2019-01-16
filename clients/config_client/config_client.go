@@ -344,7 +344,7 @@ func (client *ConfigClient) listenConfigTask(clientConfig constant.ClientConfig,
 		var changed string
 		for _, serverConfig := range serverConfigs {
 			path := client.buildBasePath(serverConfig) + "/listener"
-			changedTmp, err := listenConfig(agent, path, clientConfig.TimeoutMs, clientConfig.ListenInterval, params)
+			changedTmp, err := listen(agent, path, clientConfig.TimeoutMs, clientConfig.ListenInterval, params)
 			if err == nil {
 				changed = changedTmp
 				break
@@ -366,7 +366,7 @@ func (client *ConfigClient) listenConfigTask(clientConfig constant.ClientConfig,
 	}
 }
 
-func listenConfig(agent http_agent.IHttpAgent, path string,
+func listen(agent http_agent.IHttpAgent, path string,
 	timeoutMs uint64, listenInterval uint64,
 	params map[string]string) (changed string, err error) {
 	header := map[string][]string{

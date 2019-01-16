@@ -45,6 +45,11 @@ var paramMap = map[string]string{
 
 var serverConfigs = []constant.ServerConfig{serverConfig}
 
+var listenConfig = map[string]string{
+	"Listening-Configs": "dataId" + constant.SPLIT_CONFIG_INNER + "group" + constant.SPLIT_CONFIG_INNER +
+		constant.SPLIT_CONFIG_INNER + constant.SPLIT_CONFIG,
+}
+
 func createMockIHttpAgent(ctrl *gomock.Controller) *mock.MockIHttpAgent {
 	mockIHttpAgent := mock.NewMockIHttpAgent(ctrl)
 	return mockIHttpAgent
@@ -60,10 +65,7 @@ func TestConfigClient_listenConfigTask(t *testing.T) {
 		gomock.Eq("http://console.nacos.io:80/nacos/v1/cs/configs/listener"),
 		gomock.AssignableToTypeOf(http.Header{}),
 		gomock.AssignableToTypeOf(uint64(10*1000)),
-		gomock.Eq(map[string]string{
-			"Listening-Configs": "dataId" + constant.SPLIT_CONFIG_INNER + "group" + constant.SPLIT_CONFIG_INNER +
-				constant.SPLIT_CONFIG_INNER + constant.SPLIT_CONFIG,
-		})).AnyTimes().
+		gomock.Eq(listenConfig)).AnyTimes().
 		Return(http_agent.FakeHttpResponse(200, ``), nil)
 
 	client := ConfigClient{}
@@ -100,6 +102,34 @@ func TestConfigClient_listenConfigTask(t *testing.T) {
 	}}
 	client.listenConfigTask(clientConfig, []constant.ServerConfig{}, mockIHttpAgent)
 	assert.Equal(t, false, client.listening)
+}
+
+func TestConfigClient_listen(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer func() {
+		ctrl.Finish()
+	}()
+	mockIHttpAgent := createMockIHttpAgent(ctrl)
+	path := "http://console.nacos.io:80/nacos/v1/cs/configs/listener"
+	timeout := uint64(10 * 1000)
+	listenInterval := timeout
+
+	mockIHttpAgent.EXPECT().Post(
+		gomock.Eq(path),
+		gomock.AssignableToTypeOf(http.Header{}),
+		gomock.Eq(timeout),
+		gomock.Eq(listenConfig)).AnyTimes().
+		Return(http_agent.FakeHttpResponse(200, ``), nil)
+
+	client := ConfigClient{}
+	client.INacosClient = &nacos_client.NacosClient{}
+	_ = client.SetHttpAgent(mockIHttpAgent)
+
+	// 正确参数测试
+	client.localConfigs = []vo.ConfigParam{configParam}
+	changed, err := listen(mockIHttpAgent, path, timeout, listenInterval, listenConfig)
+	assert.Equal(t, "", changed)
+	assert.Nil(t, err)
 }
 
 func TestConfigClient_StopListenConfig(t *testing.T) {
@@ -244,12 +274,58 @@ func TestMockIConfigClient_GetConfig(t *testing.T) {
 	_ = client.SetHttpAgent(mockIHttpAgent)
 	_ = client.SetClientConfig(clientConfig)
 	_ = client.SetServerConfig(serverConfigs)
+
+	// 正确参数测试
 	content, err := client.GetConfig(configParam)
+	assert.Equal(t, nil, err)
+	assert.Equal(t, "MOCK RESULT", content)
+
+	// 错误参数测试
+	_, err = client.GetConfig(vo.ConfigParam{
+		DataId: "Test",
+	})
+	assert.NotNil(t, err)
+
+	_, err = client.GetConfig(vo.ConfigParam{
+		Group: "Test",
+	})
+	assert.NotNil(t, err)
+}
+
+func TestMockIConfigClient_getConfig(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer func() {
+		ctrl.Finish()
+	}()
+	path := "http://console.nacos.io:80/nacos/v1/cs/configs"
+	timeout := 10000
+	mockIHttpAgent, _ := createMock(ctrl)
+	mockIHttpAgent.EXPECT().Get(
+		gomock.Eq(path),
+		gomock.AssignableToTypeOf(http.Header{}),
+		gomock.Eq(uint64(timeout)),
+		gomock.Eq(paramMap)).
+		Times(1).
+		Return(http_agent.FakeHttpResponse(200, `MOCK RESULT`), nil)
+
+	content, err := getConfig(mockIHttpAgent, path, uint64(timeout), paramMap)
 	assert.Equal(t, nil, err)
 	assert.Equal(t, "MOCK RESULT", content)
 }
 
 func TestMockIConfigClient_PublishConfig(t *testing.T) {
+	testMockIConfigClientPublishConfig(t, http_agent.FakeHttpResponse(200, `true`), true, true)
+}
+
+func TestMockIConfigClient_PublishConfig_ResponseBodyException(t *testing.T) {
+	testMockIConfigClientPublishConfig(t, http_agent.FakeHttpResponse(200, `false`), false, false)
+}
+
+func TestMockIConfigClient_PublishConfig_ResponseStatusException(t *testing.T) {
+	testMockIConfigClientPublishConfig(t, http_agent.FakeHttpResponse(403, `no auth`), false, false)
+}
+
+func testMockIConfigClientPublishConfig(t *testing.T, response *http.Response, errNil bool, success bool) {
 	ctrl := gomock.NewController(t)
 	defer func() {
 		ctrl.Finish()
@@ -278,20 +354,47 @@ func TestMockIConfigClient_PublishConfig(t *testing.T) {
 			"content": "test",
 		})).
 		Times(1).
-		Return(http_agent.FakeHttpResponse(200, `true`), nil)
+		Return(response, nil)
 
 	client := ConfigClient{}
 	client.INacosClient = mockINacosClient
 	_ = client.SetHttpAgent(mockIHttpAgent)
 	_ = client.SetClientConfig(clientConfig)
 	_ = client.SetServerConfig(serverConfigs)
+
+	// 正确参数
 	content, err := client.PublishConfig(vo.ConfigParam{
 		DataId:  "TEST",
 		Group:   "TEST",
 		Content: "test",
 	})
-	assert.Equal(t, nil, err)
-	assert.Equal(t, true, content)
+	if errNil {
+		assert.Nil(t, err)
+	} else {
+		assert.NotNil(t, err)
+	}
+	assert.Equal(t, success, content)
+
+	// 错误参数
+	_, err = client.PublishConfig(vo.ConfigParam{
+		DataId:  "TEST",
+		Group:   "TEST",
+		Content: "",
+	})
+	assert.NotNil(t, err)
+	_, err = client.PublishConfig(vo.ConfigParam{
+		DataId:  "TEST",
+		Group:   "",
+		Content: "TEST",
+	})
+	assert.NotNil(t, err)
+
+	_, err = client.PublishConfig(vo.ConfigParam{
+		DataId:  "",
+		Group:   "TEST",
+		Content: "TEST",
+	})
+	assert.NotNil(t, err)
 }
 
 func createMock(ctrl *gomock.Controller) (*mock.MockIHttpAgent, *mock.MockINacosClient) {
