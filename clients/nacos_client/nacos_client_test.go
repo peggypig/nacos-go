@@ -17,143 +17,234 @@ import (
 *
 * @author : codezhang
 *
-* @create : 2019-01-15 11:59
+* @create : 2019-01-17 11:03
 **/
 
-var clientConfig = constant.ClientConfig{
+var clientConfigTest = constant.ClientConfig{
 	TimeoutMs:      10 * 1000,
-	BeatInterval:   10 * 1000,
+	BeatInterval:   5 * 1000,
 	ListenInterval: 10 * 1000,
 }
 
-func TestNacosClient_GetClientConfig(t *testing.T) {
+var serverConfigTest = constant.ServerConfig{
+	ContextPath: "/nacos",
+	Port:        80,
+	IpAddr:      "console.nacos.io",
+}
+
+func createNacosClientTest() (client NacosClient) {
+	client = NacosClient{}
+	_ = client.SetHttpAgent(&mock.MockIHttpAgent{})
+	return client
+}
+
+// SetClientConfig
+func Test_SetClientConfig(t *testing.T) {
+	client := NacosClient{}
+	err := client.SetClientConfig(clientConfigTest)
+	assert.Nil(t, err)
+	config, _ := client.GetClientConfig()
+	assert.Equal(t, clientConfigTest, config)
+}
+
+func Test_SetClientConfigWithoutTimeoutMs(t *testing.T) {
+	client := NacosClient{}
+	err := client.SetClientConfig(constant.ClientConfig{
+		ListenInterval: 10000,
+		BeatInterval:   10000,
+	})
+	assert.NotNil(t, err)
+}
+
+func Test_SetClientConfigWithoutTimeoutMsLessListenInterval(t *testing.T) {
+	client := NacosClient{}
+	err := client.SetClientConfig(constant.ClientConfig{
+		TimeoutMs:      10000,
+		ListenInterval: 11000,
+		BeatInterval:   10000,
+	})
+	assert.NotNil(t, err)
+}
+
+func Test_SetClientConfigWithoutBeatIntervalAndListenInterval(t *testing.T) {
+	client := NacosClient{}
+	err := client.SetClientConfig(constant.ClientConfig{
+		TimeoutMs: 10000,
+	})
+	assert.Nil(t, err)
+	config, _ := client.GetClientConfig()
+	assert.Equal(t, clientConfigTest, config)
+}
+
+// SetServerConfig
+
+func Test_SetServerConfig(t *testing.T) {
+	client := NacosClient{}
+	err := client.SetServerConfig([]constant.ServerConfig{serverConfigTest})
+	assert.Nil(t, err)
+	configs, _ := client.GetServerConfig()
+	assert.Equal(t, 1, len(configs))
+	assert.Equal(t, serverConfigTest, configs[0])
+}
+
+func Test_SetServerConfigWithoutContentPath(t *testing.T) {
+	client := NacosClient{}
+	config := constant.ServerConfig{
+		IpAddr: "console.nacos.io",
+		Port:   80,
+	}
+	err := client.SetServerConfig([]constant.ServerConfig{
+		config,
+	})
+	assert.Nil(t, err)
+	configs, _ := client.GetServerConfig()
+	assert.Equal(t, 1, len(configs))
+	config.ContextPath = "/nacos"
+	assert.Equal(t, serverConfigTest, configs[0])
+}
+
+func Test_SetServerConfigWithoutIpAddr(t *testing.T) {
+	client := NacosClient{}
+	err := client.SetServerConfig([]constant.ServerConfig{
+		{
+			Port:        80,
+			ContextPath: "/nacos",
+		},
+	})
+	assert.NotNil(t, err)
+}
+
+func Test_SetServerConfigWithoutPort(t *testing.T) {
+	client := NacosClient{}
+	err := client.SetServerConfig([]constant.ServerConfig{
+		{
+			IpAddr:      "console.nacos.io",
+			ContextPath: "/nacos",
+		},
+	})
+	assert.NotNil(t, err)
+}
+
+func Test_SetServerConfigWithInvalidPort_0(t *testing.T) {
+	client := NacosClient{}
+	err := client.SetServerConfig([]constant.ServerConfig{
+		{
+			IpAddr:      "console.nacos.io",
+			Port:        0,
+			ContextPath: "/nacos",
+		},
+	})
+	assert.NotNil(t, err)
+}
+
+func Test_SetServerConfigWithInvalidPort_65536(t *testing.T) {
+	client := NacosClient{}
+	err := client.SetServerConfig([]constant.ServerConfig{
+		{
+			IpAddr:      "console.nacos.io",
+			Port:        65536,
+			ContextPath: "/nacos",
+		},
+	})
+	assert.NotNil(t, err)
+}
+
+func Test_SetServerConfigWithoutConfig(t *testing.T) {
+	client := NacosClient{}
+	err := client.SetServerConfig([]constant.ServerConfig{
+	})
+	assert.NotNil(t, err)
+}
+
+// GetClientConfig
+func Test_GetClientConfig_WithoutSet(t *testing.T) {
 	client := NacosClient{}
 	_, err := client.GetClientConfig()
 	assert.NotNil(t, err)
-
-	_ = client.SetClientConfig(clientConfig)
-	config, err := client.GetClientConfig()
-	assert.Nil(t, err)
-	assert.Equal(t, clientConfig, config)
 }
 
-func TestNacosClient_GetServerConfig(t *testing.T) {
+func Test_GetClientConfig(t *testing.T) {
+	client := NacosClient{}
+	client.clientConfigValid = true
+	_, err := client.GetClientConfig()
+	assert.Nil(t, err)
+}
+
+// GetServerConfig
+
+func Test_GetServerConfig(t *testing.T) {
+	client := NacosClient{}
+	client.serverConfigsValid = true
+	_, err := client.GetServerConfig()
+	assert.Nil(t, err)
+}
+
+func Test_GetServerConfigWithoutSet(t *testing.T) {
 	client := NacosClient{}
 	_, err := client.GetServerConfig()
 	assert.NotNil(t, err)
+}
 
-	_ = client.SetServerConfig(serverConfigs)
-	configs, err := client.GetServerConfig()
+// SetHttpAgent
+
+func Test_SetHttpAgentWithNil(t *testing.T) {
+	client := NacosClient{}
+	err := client.SetHttpAgent(nil)
+	assert.NotNil(t, err)
+}
+
+func Test_SetHttpAgent(t *testing.T) {
+	client := NacosClient{}
+	err := client.SetHttpAgent(&http_agent.HttpAgent{})
 	assert.Nil(t, err)
-	assert.Equal(t, serverConfigs, configs)
 }
 
-func TestNacosClient_SetClientConfig(t *testing.T) {
-	testNacosClientSetClientConfig(t, constant.ClientConfig{
-		TimeoutMs: 0,
-	}, false, clientConfig)
+// check
 
-	testNacosClientSetClientConfig(t, constant.ClientConfig{
-		TimeoutMs:      1,
-		ListenInterval: 2,
-	}, false, clientConfig)
-
-	testNacosClientSetClientConfig(t, constant.ClientConfig{
-		TimeoutMs: 10,
-	}, true, constant.ClientConfig{
-		TimeoutMs:      10,
-		ListenInterval: 10 * 1000,
-		BeatInterval:   5 * 1000,
-	})
-
-	testNacosClientSetClientConfig(t, clientConfig, true, clientConfig)
-}
-
-func testNacosClientSetClientConfig(t *testing.T, config constant.ClientConfig, errNil bool, expected constant.ClientConfig) {
+func Test_chec(t *testing.T) {
 	client := NacosClient{}
-	err := client.SetClientConfig(config)
-	if errNil {
-		assert.Nil(t, err)
-		assert.Equal(t, expected, client.clientConfig)
-	} else {
-		assert.NotNil(t, err)
-	}
-}
-
-var sreverConfig = constant.ServerConfig{
-	IpAddr:      "console.nacos.io",
-	Port:        80,
-	ContextPath: "/nacos",
-}
-
-var serverConfigs = []constant.ServerConfig{sreverConfig}
-
-func TestNacosClient_SetServerConfig(t *testing.T) {
-	testNacosClientSetServerConfig(t, []constant.ServerConfig{}, false, sreverConfig)
-
-	testNacosClientSetServerConfig(t, []constant.ServerConfig{
-		{
-			IpAddr: "console.nacos.io",
-			Port:   0,
-		},
-	}, false, sreverConfig)
-
-	testNacosClientSetServerConfig(t, []constant.ServerConfig{
-		{
-			IpAddr: "",
-			Port:   1,
-		},
-	}, false, sreverConfig)
-
-	testNacosClientSetServerConfig(t, []constant.ServerConfig{
-		{
-			IpAddr: "console.nacos.io",
-			Port:   65536,
-		},
-	}, false, sreverConfig)
-
-
-
-	testNacosClientSetServerConfig(t, []constant.ServerConfig{
-		{
-			IpAddr: "console.nacos.io",
-			Port:   80,
-		},
-	}, true, sreverConfig)
-
-
-	testNacosClientSetServerConfig(t, []constant.ServerConfig{sreverConfig}, true, sreverConfig)
-}
-
-func testNacosClientSetServerConfig(t *testing.T, configs []constant.ServerConfig, errNil bool, expected constant.ServerConfig) {
-	client := NacosClient{}
-	err := client.SetServerConfig(configs)
-	if errNil {
-		assert.Nil(t, err)
-		assert.Equal(t, 1, len(client.serverConfigs))
-		assert.Equal(t, expected, client.serverConfigs[0])
-	} else {
-		assert.NotNil(t, err)
-	}
-}
-
-func TestNacosClient_SetHttpAgent(t *testing.T) {
-	client := NacosClient{}
-	agent := http_agent.HttpAgent{}
-	err := client.SetHttpAgent(&agent)
+	_ = client.SetClientConfig(clientConfigTest)
+	_ = client.SetServerConfig([]constant.ServerConfig{serverConfigTest})
+	_ = client.SetHttpAgent(&http_agent.HttpAgent{})
+	err := client.check()
 	assert.Nil(t, err)
-	assert.Equal(t, &agent, client.agent)
 }
 
-var namespace = vo.Namespace{
-	Namespace:         "4a1515fa-4818-482a-bc49-e4b1a729659b",
+func Test_checkWithoutClientConfig(t *testing.T) {
+	client := NacosClient{}
+	err := client.check()
+	assert.NotNil(t, err)
+}
+
+func Test_checkWithoutServerConfig(t *testing.T) {
+	client := NacosClient{}
+	_ = client.SetClientConfig(clientConfigTest)
+	//_ = client.SetServerConfig([]constant.ServerConfig{serverConfigTest})
+	err := client.check()
+	assert.NotNil(t, err)
+}
+
+func Test_checkWithoutHttpAgent(t *testing.T) {
+	client := NacosClient{}
+	_ = client.SetClientConfig(clientConfigTest)
+	_ = client.SetServerConfig([]constant.ServerConfig{serverConfigTest})
+	err := client.check()
+	assert.NotNil(t, err)
+}
+
+var namespaceTest = vo.Namespace{
+	Namespace:         "aaa",
 	NamespaceShowName: "2345",
 	Quota:             200,
 	ConfigCount:       0,
 	Type:              2,
 }
 
-func TestMockINacosClient_GetNamespace(t *testing.T) {
+var namespaceResponseTest = `{"code":200,"message":null,
+"data":[{"namespace":"aaa","namespaceShowName":"2345","quota":200,"configCount":0,"type":2}]}`
+
+// GetNamespace
+func Test_GetNamespace(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer func() {
 		ctrl.Finish()
@@ -165,18 +256,63 @@ func TestMockINacosClient_GetNamespace(t *testing.T) {
 		gomock.Eq(uint64(10*1000)),
 		gomock.AssignableToTypeOf(map[string]string{})).
 		Times(1).
-		Return(http_agent.FakeHttpResponse(200, `{"code":200,"message":null,
-"data":[{"namespace":"4a1515fa-4818-482a-bc49-e4b1a729659b","namespaceShowName":"2345","quota":200,"configCount":0,"type":2}]}`), nil)
+		Return(http_agent.FakeHttpResponse(200, namespaceResponseTest), nil)
 	client := NacosClient{}
 	_ = client.SetHttpAgent(mockIHttpAgent)
-	_ = client.SetClientConfig(clientConfig)
-	_ = client.SetServerConfig(serverConfigs)
-	content, err := client.GetNamespace()
-	assert.Equal(t, []vo.Namespace{namespace}, content)
+	_ = client.SetClientConfig(clientConfigTest)
+	_ = client.SetServerConfig([]constant.ServerConfig{serverConfigTest})
+	namespaces, err := client.GetNamespace()
+	assert.Equal(t, []vo.Namespace{namespaceTest}, namespaces)
 	assert.Equal(t, nil, err)
 }
 
-func TestMockINacosClient_CreateNamespace(t *testing.T) {
+
+func Test_GetNamespaceWithErrorResponse_Body(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer func() {
+		ctrl.Finish()
+	}()
+	mockIHttpAgent := mock.NewMockIHttpAgent(ctrl)
+	mockIHttpAgent.EXPECT().Get(
+		gomock.Eq("http://console.nacos.io:80/nacos/v1/console/namespaces"),
+		gomock.AssignableToTypeOf(http.Header{}),
+		gomock.Eq(uint64(10*1000)),
+		gomock.AssignableToTypeOf(map[string]string{})).
+		Times(1).
+		Return(http_agent.FakeHttpResponse(200, ``), nil)
+	client := NacosClient{}
+	_ = client.SetHttpAgent(mockIHttpAgent)
+	_ = client.SetClientConfig(clientConfigTest)
+	_ = client.SetServerConfig([]constant.ServerConfig{serverConfigTest})
+	_, err := client.GetNamespace()
+	assert.NotNil(t,  err)
+}
+
+
+func Test_GetNamespaceWithErrorResponse_401(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer func() {
+		ctrl.Finish()
+	}()
+	mockIHttpAgent := mock.NewMockIHttpAgent(ctrl)
+	mockIHttpAgent.EXPECT().Get(
+		gomock.Eq("http://console.nacos.io:80/nacos/v1/console/namespaces"),
+		gomock.AssignableToTypeOf(http.Header{}),
+		gomock.Eq(uint64(10*1000)),
+		gomock.AssignableToTypeOf(map[string]string{})).
+		Times(1).
+		Return(http_agent.FakeHttpResponse(401, `no auth`), nil)
+	client := NacosClient{}
+	_ = client.SetHttpAgent(mockIHttpAgent)
+	_ = client.SetClientConfig(clientConfigTest)
+	_ = client.SetServerConfig([]constant.ServerConfig{serverConfigTest})
+	_, err := client.GetNamespace()
+	assert.NotNil(t,  err)
+}
+
+// CreateNamespace
+
+func Test_CreateNamespace(t *testing.T)  {
 	ctrl := gomock.NewController(t)
 	defer func() {
 		ctrl.Finish()
@@ -191,62 +327,89 @@ func TestMockINacosClient_CreateNamespace(t *testing.T) {
 		Return(http_agent.FakeHttpResponse(200, `true`), nil)
 	client := NacosClient{}
 	_ = client.SetHttpAgent(mockIHttpAgent)
-	_ = client.SetClientConfig(clientConfig)
-	_ = client.SetServerConfig(serverConfigs)
+	_ = client.SetClientConfig(clientConfigTest)
+	_ = client.SetServerConfig([]constant.ServerConfig{serverConfigTest})
 
-	// 正确参数
 	content, err := client.CreateNamespace(vo.CreateNamespaceParam{
-		NamespaceName: "nacos-go",
-		NamespaceDesc: "nacos-go",
+		NamespaceName: "name",
+		NamespaceDesc: "desc",
 	})
 	assert.Equal(t, nil, err)
 	assert.Equal(t, true, content)
-
-	// 错误参数
-	_, err = client.CreateNamespace(vo.CreateNamespaceParam{
-		NamespaceName: "nacos-go",
-		NamespaceDesc: "",
-	})
-	assert.NotNil(t, err)
-
-	_, err = client.CreateNamespace(vo.CreateNamespaceParam{
-		NamespaceName: "",
-		NamespaceDesc: "nacos-go",
-	})
-	assert.NotNil(t, err)
 }
 
-func TestMockINacosClient_DeleteNamespace(t *testing.T) {
+
+func Test_CreateNamespaceWithErrorResponse_Body(t *testing.T)  {
 	ctrl := gomock.NewController(t)
 	defer func() {
 		ctrl.Finish()
 	}()
 	mockIHttpAgent := mock.NewMockIHttpAgent(ctrl)
-	mockIHttpAgent.EXPECT().Delete(
+	mockIHttpAgent.EXPECT().Post(
 		gomock.Eq("http://console.nacos.io:80/nacos/v1/console/namespaces"),
 		gomock.AssignableToTypeOf(http.Header{}),
-		gomock.AssignableToTypeOf(uint64(10*1000)),
+		gomock.Eq(uint64(10*1000)),
 		gomock.AssignableToTypeOf(map[string]string{})).
 		Times(1).
-		Return(http_agent.FakeHttpResponse(200, `true`), nil)
+		Return(http_agent.FakeHttpResponse(200, `false`), nil)
 	client := NacosClient{}
 	_ = client.SetHttpAgent(mockIHttpAgent)
-	_ = client.SetClientConfig(clientConfig)
-	_ = client.SetServerConfig(serverConfigs)
-	// 正确参数
-	content, err := client.DeleteNamespace(vo.DeleteNamespaceParam{
-		NamespaceId: "5394637d-daf4-4d1c-9075-7c5f733005e8",
-	})
-	assert.Equal(t, nil, err)
-	assert.Equal(t, true, content)
+	_ = client.SetClientConfig(clientConfigTest)
+	_ = client.SetServerConfig([]constant.ServerConfig{serverConfigTest})
 
-	_, err = client.DeleteNamespace(vo.DeleteNamespaceParam{
-		NamespaceId: "",
+	_, err := client.CreateNamespace(vo.CreateNamespaceParam{
+		NamespaceName: "name",
+		NamespaceDesc: "desc",
 	})
 	assert.NotNil(t, err)
 }
 
-func TestMockINacosClient_ModifyNamespace(t *testing.T) {
+func Test_CreateNamespaceWithErrorResponse_401(t *testing.T)  {
+	ctrl := gomock.NewController(t)
+	defer func() {
+		ctrl.Finish()
+	}()
+	mockIHttpAgent := mock.NewMockIHttpAgent(ctrl)
+	mockIHttpAgent.EXPECT().Post(
+		gomock.Eq("http://console.nacos.io:80/nacos/v1/console/namespaces"),
+		gomock.AssignableToTypeOf(http.Header{}),
+		gomock.Eq(uint64(10*1000)),
+		gomock.AssignableToTypeOf(map[string]string{})).
+		Times(1).
+		Return(http_agent.FakeHttpResponse(401, `no auth`), nil)
+	client := NacosClient{}
+	_ = client.SetHttpAgent(mockIHttpAgent)
+	_ = client.SetClientConfig(clientConfigTest)
+	_ = client.SetServerConfig([]constant.ServerConfig{serverConfigTest})
+
+	_, err := client.CreateNamespace(vo.CreateNamespaceParam{
+		NamespaceName: "name",
+		NamespaceDesc: "desc",
+	})
+	assert.NotNil(t, err)
+}
+
+func Test_CreateNamespaceWithoutNamespaceName(t *testing.T)  {
+	client := NacosClient{}
+	_, err := client.CreateNamespace(vo.CreateNamespaceParam{
+		NamespaceName:"",
+		NamespaceDesc:"desc",
+	})
+	assert.NotNil(t,  err)
+}
+
+func Test_CreateNamespaceWithoutNamespaceDesc(t *testing.T)  {
+	client := NacosClient{}
+	_, err := client.CreateNamespace(vo.CreateNamespaceParam{
+		NamespaceName:"name",
+		NamespaceDesc:"",
+	})
+	assert.NotNil(t,  err)
+}
+
+// ModifyNamespace
+
+func Test_ModifyNamespace(t *testing.T)  {
 	ctrl := gomock.NewController(t)
 	defer func() {
 		ctrl.Finish()
@@ -261,37 +424,182 @@ func TestMockINacosClient_ModifyNamespace(t *testing.T) {
 		Return(http_agent.FakeHttpResponse(200, `true`), nil)
 	client := NacosClient{}
 	_ = client.SetHttpAgent(mockIHttpAgent)
-	_ = client.SetClientConfig(clientConfig)
-	_ = client.SetServerConfig(serverConfigs)
+	_ = client.SetClientConfig(clientConfigTest)
+	_ = client.SetServerConfig([]constant.ServerConfig{serverConfigTest})
 
 	// 正确参数
-	content, err := client.ModifyNamespace(vo.ModifyNamespaceParam{
-		Namespace:     "5394637d-daf4-4d1c-9075-7c5f733005e8",
-		NamespaceDesc: "nacos-go",
-		NamespaceName: "go-nacos",
+	success, err := client.ModifyNamespace(vo.ModifyNamespaceParam{
+		Namespace:     "aaa",
+		NamespaceDesc: "desc",
+		NamespaceName: "name",
 	})
 	assert.Equal(t, nil, err)
-	assert.Equal(t, true, content)
+	assert.Equal(t, true, success)
+}
 
-	// 错误参数
-	_, err = client.ModifyNamespace(vo.ModifyNamespaceParam{
-		Namespace:     "5394637d-daf4-4d1c-9075-7c5f733005e8",
-		NamespaceDesc: "nacos-go",
-		NamespaceName: "",
-	})
-	assert.NotNil(t, err)
-	_, err = client.ModifyNamespace(vo.ModifyNamespaceParam{
-		Namespace:     "5394637d-daf4-4d1c-9075-7c5f733005e8",
-		NamespaceDesc: "",
-		NamespaceName: "nacos-go",
-	})
-	assert.NotNil(t, err)
 
-	_, err = client.ModifyNamespace(vo.ModifyNamespaceParam{
+
+func Test_ModifyNamespaceWithErrorResponse_Body(t *testing.T)  {
+	ctrl := gomock.NewController(t)
+	defer func() {
+		ctrl.Finish()
+	}()
+	mockIHttpAgent := mock.NewMockIHttpAgent(ctrl)
+	mockIHttpAgent.EXPECT().Put(
+		gomock.Eq("http://console.nacos.io:80/nacos/v1/console/namespaces"),
+		gomock.AssignableToTypeOf(http.Header{}),
+		gomock.AssignableToTypeOf(uint64(10*1000)),
+		gomock.AssignableToTypeOf(map[string]string{})).
+		Times(1).
+		Return(http_agent.FakeHttpResponse(200, `false`), nil)
+	client := NacosClient{}
+	_ = client.SetHttpAgent(mockIHttpAgent)
+	_ = client.SetClientConfig(clientConfigTest)
+	_ = client.SetServerConfig([]constant.ServerConfig{serverConfigTest})
+
+	_, err := client.ModifyNamespace(vo.ModifyNamespaceParam{
+		Namespace:     "aaa",
+		NamespaceDesc: "desc",
+		NamespaceName: "name",
+	})
+	assert.NotNil(t,  err)
+}
+
+func Test_ModifyNamespaceWithErrorResponse_401(t *testing.T)  {
+	ctrl := gomock.NewController(t)
+	defer func() {
+		ctrl.Finish()
+	}()
+	mockIHttpAgent := mock.NewMockIHttpAgent(ctrl)
+	mockIHttpAgent.EXPECT().Put(
+		gomock.Eq("http://console.nacos.io:80/nacos/v1/console/namespaces"),
+		gomock.AssignableToTypeOf(http.Header{}),
+		gomock.AssignableToTypeOf(uint64(10*1000)),
+		gomock.AssignableToTypeOf(map[string]string{})).
+		Times(1).
+		Return(http_agent.FakeHttpResponse(401, `no auth`), nil)
+	client := NacosClient{}
+	_ = client.SetHttpAgent(mockIHttpAgent)
+	_ = client.SetClientConfig(clientConfigTest)
+	_ = client.SetServerConfig([]constant.ServerConfig{serverConfigTest})
+
+	// 正确参数
+	_, err := client.ModifyNamespace(vo.ModifyNamespaceParam{
+		Namespace:     "aaa",
+		NamespaceDesc: "desc",
+		NamespaceName: "name",
+	})
+	assert.NotNil(t,  err)
+}
+
+func Test_ModifyNamespaceWithoutNamespace(t *testing.T)  {
+	client := NacosClient{}
+	_, err := client.ModifyNamespace(vo.ModifyNamespaceParam{
 		Namespace:     "",
 		NamespaceDesc: "nacos-go",
-		NamespaceName: "nacos-go",
+		NamespaceName: "name",
+	})
+	assert.NotNil(t,  err)
+}
+
+func Test_ModifyNamespaceWithoutNamespaceName(t *testing.T)  {
+	client := NacosClient{}
+	_, err := client.ModifyNamespace(vo.ModifyNamespaceParam{
+		Namespace:     "aaa",
+		NamespaceDesc: "desc",
+		NamespaceName: "",
+	})
+	assert.NotNil(t,  err)
+}
+
+func Test_ModifyNamespaceWithoutNamespaceDesc(t *testing.T)  {
+	client := NacosClient{}
+	_, err := client.ModifyNamespace(vo.ModifyNamespaceParam{
+		Namespace:     "aaa",
+		NamespaceDesc: "",
+		NamespaceName: "name",
+	})
+	assert.NotNil(t,  err)
+}
+
+
+// DeleteNamespace
+
+func Test_DeleteNamespace(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer func() {
+		ctrl.Finish()
+	}()
+	mockIHttpAgent := mock.NewMockIHttpAgent(ctrl)
+	mockIHttpAgent.EXPECT().Delete(
+		gomock.Eq("http://console.nacos.io:80/nacos/v1/console/namespaces"),
+		gomock.AssignableToTypeOf(http.Header{}),
+		gomock.AssignableToTypeOf(uint64(10*1000)),
+		gomock.AssignableToTypeOf(map[string]string{})).
+		Times(1).
+		Return(http_agent.FakeHttpResponse(200, `true`), nil)
+	client := NacosClient{}
+	_ = client.SetHttpAgent(mockIHttpAgent)
+	_ = client.SetClientConfig(clientConfigTest)
+	_ = client.SetServerConfig([]constant.ServerConfig{serverConfigTest})
+	success, err := client.DeleteNamespace(vo.DeleteNamespaceParam{
+		NamespaceId: "aaa",
+	})
+	assert.Equal(t, nil, err)
+	assert.Equal(t, true, success)
+}
+
+func Test_DeleteNamespaceWithErrorResponse_Body(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer func() {
+		ctrl.Finish()
+	}()
+	mockIHttpAgent := mock.NewMockIHttpAgent(ctrl)
+	mockIHttpAgent.EXPECT().Delete(
+		gomock.Eq("http://console.nacos.io:80/nacos/v1/console/namespaces"),
+		gomock.AssignableToTypeOf(http.Header{}),
+		gomock.AssignableToTypeOf(uint64(10*1000)),
+		gomock.AssignableToTypeOf(map[string]string{})).
+		Times(1).
+		Return(http_agent.FakeHttpResponse(200, `false`), nil)
+	client := NacosClient{}
+	_ = client.SetHttpAgent(mockIHttpAgent)
+	_ = client.SetClientConfig(clientConfigTest)
+	_ = client.SetServerConfig([]constant.ServerConfig{serverConfigTest})
+	_, err := client.DeleteNamespace(vo.DeleteNamespaceParam{
+		NamespaceId: "aaa",
 	})
 	assert.NotNil(t, err)
+}
 
+func Test_DeleteNamespaceWithErrorResponse_401(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer func() {
+		ctrl.Finish()
+	}()
+	mockIHttpAgent := mock.NewMockIHttpAgent(ctrl)
+	mockIHttpAgent.EXPECT().Delete(
+		gomock.Eq("http://console.nacos.io:80/nacos/v1/console/namespaces"),
+		gomock.AssignableToTypeOf(http.Header{}),
+		gomock.AssignableToTypeOf(uint64(10*1000)),
+		gomock.AssignableToTypeOf(map[string]string{})).
+		Times(1).
+		Return(http_agent.FakeHttpResponse(401, `no auth`), nil)
+	client := NacosClient{}
+	_ = client.SetHttpAgent(mockIHttpAgent)
+	_ = client.SetClientConfig(clientConfigTest)
+	_ = client.SetServerConfig([]constant.ServerConfig{serverConfigTest})
+	_, err := client.DeleteNamespace(vo.DeleteNamespaceParam{
+		NamespaceId: "aaa",
+	})
+	assert.NotNil(t, err)
+}
+
+
+func Test_DeleteNamespaceWithoutNamspaceId(t *testing.T) {
+	client := NacosClient{}
+	_, err := client.DeleteNamespace(vo.DeleteNamespaceParam{
+		NamespaceId: "",
+	})
+	assert.NotNil(t,  err)
 }

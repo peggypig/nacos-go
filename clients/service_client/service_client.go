@@ -415,8 +415,8 @@ func (client *ServiceClient) startBeatTask(param vo.BeatTaskParam) {
 			if errInner == nil {
 				timer = time.NewTimer(time.Duration(clientConfig.BeatInterval) * time.Millisecond)
 			}
-			client.beatTask(clientConfig,serverConfigs,agent,param)
-			if !client.beating {
+			errInner = client.beatTask(clientConfig, serverConfigs, agent, param)
+			if errInner != nil {
 				break
 			}
 			<-timer.C
@@ -425,8 +425,7 @@ func (client *ServiceClient) startBeatTask(param vo.BeatTaskParam) {
 }
 
 func (client *ServiceClient) beatTask(clientConfig constant.ClientConfig,
-	serverConfigs []constant.ServerConfig, agent http_agent.IHttpAgent, param vo.BeatTaskParam) {
-	var err error
+	serverConfigs []constant.ServerConfig, agent http_agent.IHttpAgent, param vo.BeatTaskParam) (err error) {
 	// 心跳参数检查
 	if len(param.Ip) <= 0 {
 		err = errors.New("[client.StartBeatTask] param.Ip can not be empty")
@@ -476,6 +475,7 @@ func (client *ServiceClient) beatTask(clientConfig constant.ClientConfig,
 			}
 		}
 	}
+	return
 }
 
 func beat(agent http_agent.IHttpAgent, path string, timeoutMs uint64,

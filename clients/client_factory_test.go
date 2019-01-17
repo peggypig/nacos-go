@@ -6,7 +6,6 @@ import (
 	"github.com/peggypig/nacos-go/clients/service_client"
 	"github.com/peggypig/nacos-go/common/constant"
 	"github.com/stretchr/testify/assert"
-	"reflect"
 	"testing"
 )
 
@@ -19,30 +18,36 @@ import (
 * @create : 2019-01-08 11:25
 **/
 
+func TestCreateConfigClientWithoutConfig(t *testing.T) {
+	_, err := CreateConfigClient(map[string]interface{}{
+
+	})
+	assert.NotNil(t,err)
+}
+
 func TestCreateConfigClient(t *testing.T) {
 	cfg := constant.ServerConfig{
 		IpAddr: "10.0.0.8",
 		Port:   8848,
 	}
-	_, err := CreateConfigClient(map[string]interface{}{
-
-	})
-	assert.NotNil(t,err)
 	client, err := CreateConfigClient(map[string]interface{}{
 		"serverConfigs": []constant.ServerConfig{
 			cfg,
 		},
 	})
-	if err != nil {
-		t.Error("error:", err)
-	} else {
-		c2 := client.(*config_client.ConfigClient)
-		configs, _ := c2.GetServerConfig()
-		cfg.ContextPath = "/nacos"
-		assert.Equal(t, 1, len(configs))
-		assert.Equal(t, cfg, configs[0])
-		assert.True(t, reflect.DeepEqual(cfg, configs[0]))
-	}
+	assert.Nil(t,err)
+	realClient := client.(*config_client.ConfigClient)
+	configs, _ := realClient.GetServerConfig()
+	cfg.ContextPath = "/nacos"
+	assert.Equal(t, 1, len(configs))
+	assert.Equal(t, cfg, configs[0])
+}
+
+func TestCreateServiceClientWithoutConfig(t *testing.T) {
+	_, err := CreateServiceClient(map[string]interface{}{
+
+	})
+	assert.NotNil(t,err)
 }
 
 func TestCreateServiceClient(t *testing.T) {
@@ -50,25 +55,17 @@ func TestCreateServiceClient(t *testing.T) {
 		IpAddr: "10.0.0.8",
 		Port:   8848,
 	}
-	_, err := CreateServiceClient(map[string]interface{}{
-
-	})
-	assert.NotNil(t,err)
 	client, err := CreateServiceClient(map[string]interface{}{
 		"serverConfigs": []constant.ServerConfig{
 			cfg,
 		},
 	})
-	if err != nil {
-		t.Error("error:", err)
-	} else {
-		c2 := client.(*service_client.ServiceClient)
-		configs, _ := c2.GetServerConfig()
-		cfg.ContextPath = "/nacos"
-		assert.Equal(t, 1, len(configs))
-		assert.Equal(t, cfg, configs[0])
-		assert.True(t, reflect.DeepEqual(cfg, configs[0]))
-	}
+	assert.Nil(t,err)
+	realClient := client.(*service_client.ServiceClient)
+	configs, _ := realClient.GetServerConfig()
+	cfg.ContextPath = "/nacos"
+	assert.Equal(t, 1, len(configs))
+	assert.Equal(t, cfg, configs[0])
 }
 
 func TestSetConfig(t *testing.T) {
@@ -85,15 +82,12 @@ func TestSetConfig(t *testing.T) {
 		"clientConfig":  clientConfig,
 		"serverConfigs": serverConfigs,
 	})
-	if err != nil {
-		t.Error(err)
-	} else {
-		clientConfig.BeatInterval = 5 * 1000
-		clientConfig.ListenInterval = 10 * 1000
-		cc, _ := client.(*nacos_client.NacosClient).GetClientConfig()
-		sc, _ := client.(*nacos_client.NacosClient).GetServerConfig()
-		assert.Equal(t, clientConfig, cc)
-		assert.Equal(t,1,len(serverConfigs))
-		assert.Equal(t, serverConfigs[0], sc[0])
-	}
+	assert.Nil(t,err)
+	clientConfig.BeatInterval = 5 * 1000
+	clientConfig.ListenInterval = 10 * 1000
+	cc, _ := client.(*nacos_client.NacosClient).GetClientConfig()
+	sc, _ := client.(*nacos_client.NacosClient).GetServerConfig()
+	assert.Equal(t, clientConfig, cc)
+	assert.Equal(t,1,len(serverConfigs))
+	assert.Equal(t, serverConfigs[0], sc[0])
 }
