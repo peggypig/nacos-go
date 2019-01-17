@@ -305,7 +305,7 @@ func (client *ConfigClient) listenConfigTask(clientConfig constant.ClientConfig,
 	serverConfigs []constant.ServerConfig, agent http_agent.IHttpAgent) {
 	var listeningConfigs string
 	var err error
-	if len(client.localConfigs) <= 0{
+	if len(client.localConfigs) <= 0 {
 		err = errors.New("[client.ListenConfig] listen configs can not be empty")
 	}
 	// 检查&拼接监听参数
@@ -335,6 +335,7 @@ func (client *ConfigClient) listenConfigTask(clientConfig constant.ClientConfig,
 		client.mutex.Lock()
 		client.listening = false
 		client.mutex.Unlock()
+		log.Println(err)
 		log.Println("client.ListenConfig failed")
 	}
 	// http 请求
@@ -421,6 +422,22 @@ func (client *ConfigClient) updateLocalConfig(changed string) {
 				client.putLocalConfig(vo.ConfigParam{
 					DataId:  attrs[0],
 					Group:   attrs[1],
+					Content: content,
+				})
+			}
+		} else if len(attrs) == 3 {
+			content, err := client.GetConfig(vo.ConfigParam{
+				DataId: attrs[0],
+				Group:  attrs[1],
+				Tenant: attrs[2],
+			})
+			if err != nil {
+				log.Println("[client.updateLocalConfig] update config failed:", err.Error())
+			} else {
+				client.putLocalConfig(vo.ConfigParam{
+					DataId:  attrs[0],
+					Group:   attrs[1],
+					Tenant:  attrs[2],
 					Content: content,
 				})
 			}
