@@ -15,7 +15,7 @@ import (
 **/
 
 func main() {
-	//example.ExampleServiceClient_RegisterServiceInstance()
+	example.ExampleServiceClient_RegisterServiceInstance()
 	example.ExampleServiceClient_Subscribe()
 	time.Sleep(100*time.Second)
 }

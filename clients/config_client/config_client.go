@@ -268,6 +268,31 @@ func deleteConfig(agent http_agent.IHttpAgent, path string, timeoutMs uint64,
 	return
 }
 
+func (client *ConfigClient) AddConfigToListen(params []vo.ConfigParam) (err error) {
+	client.mutex.Lock()
+	defer client.mutex.Unlock()
+	if !client.listening {
+		err = errors.New("[client.ListenConfig] client is not listening")
+	} else {
+		var newParams []vo.ConfigParam
+		// 去掉重复添加的
+		for _, newParam := range params {
+			flag := true
+			for _, param := range client.localConfigs {
+				if param.Group == newParam.Group && param.DataId == newParam.DataId {
+					flag = false
+					break
+				}
+			}
+			if flag {
+				newParams = append(newParams, newParam)
+			}
+		}
+		client.localConfigs = append(client.localConfigs, newParams...)
+	}
+	return
+}
+
 func (client *ConfigClient) ListenConfig(params []vo.ConfigParam) (err error) {
 	client.mutex.Lock()
 	defer client.mutex.Unlock()
@@ -310,6 +335,7 @@ func (client *ConfigClient) listenConfigTask(clientConfig constant.ClientConfig,
 	}
 	// 检查&拼接监听参数
 	if err == nil {
+		client.mutex.Lock()
 		for index, param := range client.localConfigs {
 			if len(param.DataId) <= 0 {
 				err = errors.New("[client.ListenConfig] params[" + strconv.Itoa(index) + "].DataId can not be empty")
@@ -330,6 +356,7 @@ func (client *ConfigClient) listenConfigTask(clientConfig constant.ClientConfig,
 			listeningConfigs += param.DataId + constant.SPLIT_CONFIG_INNER + param.Group + constant.SPLIT_CONFIG_INNER +
 				md5 + constant.SPLIT_CONFIG_INNER + tenant + constant.SPLIT_CONFIG
 		}
+		client.mutex.Unlock()
 	}
 	if err != nil {
 		client.mutex.Lock()
