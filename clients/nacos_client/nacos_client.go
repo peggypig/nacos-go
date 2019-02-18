@@ -48,6 +48,9 @@ func (client *NacosClient) SetClientConfig(config constant.ClientConfig) (err er
 			config.ListenInterval = 10 * 1000
 		}
 	}
+	if err == nil && config.SubscribeInterval <= 0 {
+		config.SubscribeInterval = 10 * 1000
+	}
 	if err == nil {
 		client.clientConfig = config
 		client.clientConfigValid = true

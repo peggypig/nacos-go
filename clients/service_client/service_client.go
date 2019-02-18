@@ -577,3 +577,101 @@ func (client *ServiceClient) buildBasePath(serverConfig constant.ServerConfig) (
 		strconv.FormatUint(serverConfig.Port, 10) + serverConfig.ContextPath
 	return
 }
+
+func (client *ServiceClient) Subscribe(param vo.SubscribeParam) (err error) {
+	if len(param.ServiceName) <= 0 {
+		err = errors.New("[client.Subscribe] param.ServiceName can not be empty")
+	}
+	if err == nil && param.SubscribeCallback == nil {
+		err = errors.New("[client.Subscribe] param.SubscribeCallback can not be nil")
+	}
+	var clientConfig constant.ClientConfig
+	var serverConfigs []constant.ServerConfig
+	var agent http_agent.IHttpAgent
+	if err == nil {
+		clientConfig, serverConfigs, agent, err = client.sync()
+	}
+	if err == nil {
+		subscribeServiceTask(param, serverConfigs, clientConfig, agent, client)
+	}
+	return
+}
+
+func subscribeServiceTask(param vo.SubscribeParam, serverConfigs []constant.ServerConfig, clientConfig constant.ClientConfig,
+	agent http_agent.IHttpAgent, client *ServiceClient) {
+	params := util.TransformObject2Param(param)
+	params["healthyOnly"] = "false"
+	go func() {
+		for {
+			// 创建计时器
+			var timer *time.Timer
+			timer = time.NewTimer(time.Duration(clientConfig.SubscribeInterval) * time.Millisecond)
+			var service *vo.Service
+			for _, serverConfig := range serverConfigs {
+				path := client.buildBasePath(serverConfig) + constant.SERVICE_SUBSCRIBE_PATH
+				serviceTemp, err := subscribe(agent, path, clientConfig.TimeoutMs, params)
+				if err == nil {
+					service = &serviceTemp
+					break
+				} else {
+					if _, ok := err.(*nacos_error.NacosError); ok {
+						break
+					} else {
+						log.Println("[client.Subscribe] subscribe failed:", err.Error())
+					}
+				}
+			}
+			if service != nil {
+				// 数据转换 service =》SubscribeService
+				var subscribeServices []vo.SubscribeService
+				for _, host := range service.Hosts {
+					var subscribeService vo.SubscribeService
+					subscribeService.Valid = host.Valid
+					subscribeService.Port = host.Port
+					subscribeService.Ip = host.Ip
+					subscribeService.Metadata = service.Metadata
+					subscribeService.ServiceName = host.ServiceName
+					subscribeService.ClusterName = host.ClusterName
+					subscribeService.Weight = host.Weight
+					subscribeService.InstanceId = host.InstanceId
+					subscribeService.Enable = host.Enable
+					subscribeServices = append(subscribeServices, subscribeService)
+				}
+				param.SubscribeCallback(subscribeServices, nil)
+			} else {
+				param.SubscribeCallback(nil, errors.New(
+					"[client.Subscribe] subscribe failed,go to the log for details"))
+			}
+			<-timer.C
+		}
+	}()
+}
+
+func subscribe(agent http_agent.IHttpAgent, path string, timeoutMs uint64,
+	params map[string]string) (service vo.Service, err error) {
+	// 构造并完成http请求
+	var response *http.Response
+	log.Println("[client.Subscribe] request url:", path, ",params:", params)
+	response, err = agent.Get(path, nil, timeoutMs, params)
+	// response 解析
+	if err == nil {
+		bytes, errRead := ioutil.ReadAll(response.Body)
+		defer response.Body.Close()
+		if errRead != nil {
+			err = errRead
+		} else {
+			if response.StatusCode == 200 {
+				errUnmarshal := json.Unmarshal(bytes, &service)
+				if errUnmarshal != nil {
+					log.Println(errUnmarshal)
+					err = errors.New("[client.Subscribe] " + string(bytes))
+				}
+			} else {
+				err = &nacos_error.NacosError{
+					ErrMsg: "[client.Subscribe] [" + strconv.Itoa(response.StatusCode) + "]" + string(bytes),
+				}
+			}
+		}
+	}
+	return
+}

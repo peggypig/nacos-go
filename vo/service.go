@@ -77,3 +77,15 @@ type Cluster struct {
 type ClusterHealthChecker struct {
 	Type string `json:"type"`
 }
+
+type SubscribeService struct {
+	ClusterName string            `json:"clusterName"`
+	Enable      bool              `json:"enable"`
+	InstanceId  string            `json:"instanceId"`
+	Ip          string            `json:"ip"`
+	Metadata    map[string]string `json:"metadata"`
+	Port        uint64            `json:"port"`
+	ServiceName string            `json:"serviceName"`
+	Valid       bool              `json:"valid"`
+	Weight      float64           `json:"weight"`
+}

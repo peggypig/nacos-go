@@ -1043,3 +1043,77 @@ func Test_beatTaskWithoutDom(t *testing.T) {
 	})
 	assert.NotNil(t, err)
 }
+
+
+func Test_SubscribeWithoutServiceName(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer func() {
+		ctrl.Finish()
+	}()
+	client := ServiceClient{}
+	client.INacosClient = &nacos_client.NacosClient{}
+	client.beating = true
+	err := client.Subscribe(vo.SubscribeParam{
+	})
+	assert.NotNil(t, err)
+}
+
+func Test_SubscribeWithoutCallback(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer func() {
+		ctrl.Finish()
+	}()
+	client := ServiceClient{}
+	client.INacosClient = &nacos_client.NacosClient{}
+	client.beating = true
+	err := client.Subscribe(vo.SubscribeParam{
+		ServiceName:"DEMO",
+	})
+	assert.NotNil(t, err)
+}
+
+func Test_subscribe(t *testing.T)  {
+	ctrl := gomock.NewController(t)
+	defer func() {
+		ctrl.Finish()
+	}()
+	mockIHttpAgent := mock.NewMockIHttpAgent(ctrl)
+	mockIHttpAgent.EXPECT().Get(gomock.AssignableToTypeOf(""),
+		gomock.Any(),
+		gomock.Any(),
+		gomock.AssignableToTypeOf(map[string]string{})).Times(1).Return(
+		http_agent.FakeHttpResponse(200, serviceJsonTest), nil)
+	client := ServiceClient{}
+	client.INacosClient = &nacos_client.NacosClient{}
+	_ = client.SetHttpAgent(mockIHttpAgent)
+	_ = client.SetClientConfig(clientConfigTest)
+	_ = client.SetServerConfig([]constant.ServerConfig{serverConfigTest})
+	_ , err := subscribe(mockIHttpAgent,"http://console.nacos.io/v1/ns/instance/list",clientConfigTest.TimeoutMs,
+		map[string]string{
+			"ServiceName":"demo",
+		})
+	assert.Nil(t, err)
+}
+
+func Test_subscribeWithErrorResponse_401(t *testing.T)  {
+	ctrl := gomock.NewController(t)
+	defer func() {
+		ctrl.Finish()
+	}()
+	mockIHttpAgent := mock.NewMockIHttpAgent(ctrl)
+	mockIHttpAgent.EXPECT().Get(gomock.AssignableToTypeOf(""),
+		gomock.Any(),
+		gomock.Any(),
+		gomock.AssignableToTypeOf(map[string]string{})).Times(1).Return(
+		http_agent.FakeHttpResponse(401, `no auth`), nil)
+	client := ServiceClient{}
+	client.INacosClient = &nacos_client.NacosClient{}
+	_ = client.SetHttpAgent(mockIHttpAgent)
+	_ = client.SetClientConfig(clientConfigTest)
+	_ = client.SetServerConfig([]constant.ServerConfig{serverConfigTest})
+	_ , err := subscribe(mockIHttpAgent,"http://console.nacos.io/v1/ns/instance/list",clientConfigTest.TimeoutMs,
+		map[string]string{
+			"ServiceName":"demo",
+		})
+	assert.NotNil(t, err)
+}

@@ -24,16 +24,16 @@ func ExampleConfigClient_GetConfig() {
 	client.INacosClient = &nacos_client.NacosClient{}
 	_ = client.SetHttpAgent(&http_agent.HttpAgent{})
 	_ = client.SetServerConfig([]constant.ServerConfig{constant.ServerConfig{
-		IpAddr: "console.nacos.io",
-		Port:   80,
+		IpAddr: "10.0.0.8",
+		Port:   8848,
 	}})
 	_ = client.SetClientConfig(constant.ClientConfig{
 		TimeoutMs:      30 * 1000,
 		ListenInterval: 10 * 1000,
 	})
 	content, _ := client.GetConfig(vo.ConfigParam{
-		DataId: "TEST2",
-		Group:  "DEFAULT_GROUP",
+		DataId: "dataId",
+		Group:  "group",
 	})
 	fmt.Println(content)
 }

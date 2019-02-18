@@ -32,4 +32,6 @@ type IServiceClient interface {
 	StopBeatTask()
 	// 获取service的基本信息
 	GetServiceDetail(param vo.GetServiceDetailParam) (vo.ServiceDetail, error)
+	// 服务监听
+	Subscribe(param vo.SubscribeParam) error
 }

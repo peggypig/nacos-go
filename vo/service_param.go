@@ -67,3 +67,9 @@ type BeatTaskParam struct {
 type GetServiceDetailParam struct {
 	ServiceName string `param:"serviceName"`
 }
+
+type SubscribeParam struct {
+	ServiceName       string   `param:"serviceName"`
+	Clusters          []string `param:"clusters"`
+	SubscribeCallback func([]SubscribeService,error)
+}

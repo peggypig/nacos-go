@@ -85,6 +85,7 @@ func TestSetConfig(t *testing.T) {
 	assert.Nil(t,err)
 	clientConfig.BeatInterval = 5 * 1000
 	clientConfig.ListenInterval = 10 * 1000
+	clientConfig.SubscribeInterval = 10*1000
 	cc, _ := client.(*nacos_client.NacosClient).GetClientConfig()
 	sc, _ := client.(*nacos_client.NacosClient).GetServerConfig()
 	assert.Equal(t, clientConfig, cc)

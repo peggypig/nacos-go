@@ -68,6 +68,8 @@ ContextPath：nacos服务的上下文路径，默认是“/nacos”
 停止向服务器发送心跳  
 8. GetServiceDetail  
 获取服务的详细信息  
+9. Subscribe
+服务监听
 
 ### quick start
 以GetConfig为例：  

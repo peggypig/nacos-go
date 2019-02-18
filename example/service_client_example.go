@@ -27,16 +27,13 @@ func ExampleServiceClient_RegisterServiceInstance() {
 		TimeoutMs: 30 * 1000,
 	})
 	_ = client.SetServerConfig([]constant.ServerConfig{constant.ServerConfig{
-		IpAddr: "10.0.0.81",
-		Port:   8848,
-	}, constant.ServerConfig{
-		IpAddr: "10.0.0.8",
-		Port:   8848,
+		IpAddr: "console.nacos.io",
+		Port:   80,
 	}})
 	success, _ := client.RegisterServiceInstance(vo.RegisterServiceInstanceParam{
-		Ip:          "10.0.0.10",
+		Ip:          "10.0.0.11",
 		Port:        8848,
-		ServiceName: "demoservice1",
+		ServiceName: "demo",
 		Weight:      1000,
 		ClusterName: "a",
 	})
@@ -69,14 +66,14 @@ func ExampleServiceClient_GetService() {
 	client.INacosClient = &nacos_client.NacosClient{}
 	_ = client.SetHttpAgent(&http_agent.HttpAgent{})
 	_ = client.SetServerConfig([]constant.ServerConfig{constant.ServerConfig{
-		IpAddr: "10.0.0.8",
-		Port:   8848,
+		IpAddr: "console.nacos.io",
+		Port:   80,
 	}})
 	_ = client.SetClientConfig(constant.ClientConfig{
 		TimeoutMs: 30 * 1000,
 	})
 	service, _ := client.GetService(vo.GetServiceParam{
-		ServiceName: "demoservice",
+		ServiceName: "unit",
 	})
 	fmt.Println(service)
 }
@@ -158,4 +155,25 @@ func ExampleServiceClient_GetServiceInfo() {
 		ServiceName: "demoservice",
 	})
 	fmt.Println(info)
+}
+
+func ExampleServiceClient_Subscribe() {
+	client := service_client.ServiceClient{}
+	client.INacosClient = &nacos_client.NacosClient{}
+	_ = client.SetHttpAgent(&http_agent.HttpAgent{})
+	_ = client.SetServerConfig([]constant.ServerConfig{constant.ServerConfig{
+		IpAddr: "console.nacos.io",
+		Port:   80,
+	}})
+	_ = client.SetClientConfig(constant.ClientConfig{
+		TimeoutMs: 30 * 1000,
+	})
+	_ = client.Subscribe(vo.SubscribeParam{
+		ServiceName: "unit",
+		//Clusters:    []string{"a"},
+		SubscribeCallback: func(services []vo.SubscribeService,err error) {
+			fmt.Println(err)
+			fmt.Println(services)
+		},
+	})
 }

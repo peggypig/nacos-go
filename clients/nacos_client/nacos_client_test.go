@@ -13,7 +13,7 @@ import (
 
 /**
 *
-* @description : 
+* @description :
 *
 * @author : codezhang
 *
@@ -44,6 +44,7 @@ func Test_SetClientConfig(t *testing.T) {
 	err := client.SetClientConfig(clientConfigTest)
 	assert.Nil(t, err)
 	config, _ := client.GetClientConfig()
+	clientConfigTest.SubscribeInterval = 10 * 1000
 	assert.Equal(t, clientConfigTest, config)
 }
 
@@ -73,6 +74,7 @@ func Test_SetClientConfigWithoutBeatIntervalAndListenInterval(t *testing.T) {
 	})
 	assert.Nil(t, err)
 	config, _ := client.GetClientConfig()
+	clientConfigTest.SubscribeInterval = 10*1000
 	assert.Equal(t, clientConfigTest, config)
 }
 
@@ -151,8 +153,7 @@ func Test_SetServerConfigWithInvalidPort_65536(t *testing.T) {
 
 func Test_SetServerConfigWithoutConfig(t *testing.T) {
 	client := NacosClient{}
-	err := client.SetServerConfig([]constant.ServerConfig{
-	})
+	err := client.SetServerConfig([]constant.ServerConfig{})
 	assert.NotNil(t, err)
 }
 
@@ -266,7 +267,6 @@ func Test_GetNamespace(t *testing.T) {
 	assert.Equal(t, nil, err)
 }
 
-
 func Test_GetNamespaceWithErrorResponse_Body(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer func() {
@@ -285,9 +285,8 @@ func Test_GetNamespaceWithErrorResponse_Body(t *testing.T) {
 	_ = client.SetClientConfig(clientConfigTest)
 	_ = client.SetServerConfig([]constant.ServerConfig{serverConfigTest})
 	_, err := client.GetNamespace()
-	assert.NotNil(t,  err)
+	assert.NotNil(t, err)
 }
-
 
 func Test_GetNamespaceWithErrorResponse_401(t *testing.T) {
 	ctrl := gomock.NewController(t)
@@ -307,12 +306,12 @@ func Test_GetNamespaceWithErrorResponse_401(t *testing.T) {
 	_ = client.SetClientConfig(clientConfigTest)
 	_ = client.SetServerConfig([]constant.ServerConfig{serverConfigTest})
 	_, err := client.GetNamespace()
-	assert.NotNil(t,  err)
+	assert.NotNil(t, err)
 }
 
 // CreateNamespace
 
-func Test_CreateNamespace(t *testing.T)  {
+func Test_CreateNamespace(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer func() {
 		ctrl.Finish()
@@ -338,8 +337,7 @@ func Test_CreateNamespace(t *testing.T)  {
 	assert.Equal(t, true, content)
 }
 
-
-func Test_CreateNamespaceWithErrorResponse_Body(t *testing.T)  {
+func Test_CreateNamespaceWithErrorResponse_Body(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer func() {
 		ctrl.Finish()
@@ -364,7 +362,7 @@ func Test_CreateNamespaceWithErrorResponse_Body(t *testing.T)  {
 	assert.NotNil(t, err)
 }
 
-func Test_CreateNamespaceWithErrorResponse_401(t *testing.T)  {
+func Test_CreateNamespaceWithErrorResponse_401(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer func() {
 		ctrl.Finish()
@@ -389,27 +387,27 @@ func Test_CreateNamespaceWithErrorResponse_401(t *testing.T)  {
 	assert.NotNil(t, err)
 }
 
-func Test_CreateNamespaceWithoutNamespaceName(t *testing.T)  {
+func Test_CreateNamespaceWithoutNamespaceName(t *testing.T) {
 	client := NacosClient{}
 	_, err := client.CreateNamespace(vo.CreateNamespaceParam{
-		NamespaceName:"",
-		NamespaceDesc:"desc",
+		NamespaceName: "",
+		NamespaceDesc: "desc",
 	})
-	assert.NotNil(t,  err)
+	assert.NotNil(t, err)
 }
 
-func Test_CreateNamespaceWithoutNamespaceDesc(t *testing.T)  {
+func Test_CreateNamespaceWithoutNamespaceDesc(t *testing.T) {
 	client := NacosClient{}
 	_, err := client.CreateNamespace(vo.CreateNamespaceParam{
-		NamespaceName:"name",
-		NamespaceDesc:"",
+		NamespaceName: "name",
+		NamespaceDesc: "",
 	})
-	assert.NotNil(t,  err)
+	assert.NotNil(t, err)
 }
 
 // ModifyNamespace
 
-func Test_ModifyNamespace(t *testing.T)  {
+func Test_ModifyNamespace(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer func() {
 		ctrl.Finish()
@@ -437,9 +435,7 @@ func Test_ModifyNamespace(t *testing.T)  {
 	assert.Equal(t, true, success)
 }
 
-
-
-func Test_ModifyNamespaceWithErrorResponse_Body(t *testing.T)  {
+func Test_ModifyNamespaceWithErrorResponse_Body(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer func() {
 		ctrl.Finish()
@@ -462,10 +458,10 @@ func Test_ModifyNamespaceWithErrorResponse_Body(t *testing.T)  {
 		NamespaceDesc: "desc",
 		NamespaceName: "name",
 	})
-	assert.NotNil(t,  err)
+	assert.NotNil(t, err)
 }
 
-func Test_ModifyNamespaceWithErrorResponse_401(t *testing.T)  {
+func Test_ModifyNamespaceWithErrorResponse_401(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer func() {
 		ctrl.Finish()
@@ -489,39 +485,38 @@ func Test_ModifyNamespaceWithErrorResponse_401(t *testing.T)  {
 		NamespaceDesc: "desc",
 		NamespaceName: "name",
 	})
-	assert.NotNil(t,  err)
+	assert.NotNil(t, err)
 }
 
-func Test_ModifyNamespaceWithoutNamespace(t *testing.T)  {
+func Test_ModifyNamespaceWithoutNamespace(t *testing.T) {
 	client := NacosClient{}
 	_, err := client.ModifyNamespace(vo.ModifyNamespaceParam{
 		Namespace:     "",
 		NamespaceDesc: "nacos-go",
 		NamespaceName: "name",
 	})
-	assert.NotNil(t,  err)
+	assert.NotNil(t, err)
 }
 
-func Test_ModifyNamespaceWithoutNamespaceName(t *testing.T)  {
+func Test_ModifyNamespaceWithoutNamespaceName(t *testing.T) {
 	client := NacosClient{}
 	_, err := client.ModifyNamespace(vo.ModifyNamespaceParam{
 		Namespace:     "aaa",
 		NamespaceDesc: "desc",
 		NamespaceName: "",
 	})
-	assert.NotNil(t,  err)
+	assert.NotNil(t, err)
 }
 
-func Test_ModifyNamespaceWithoutNamespaceDesc(t *testing.T)  {
+func Test_ModifyNamespaceWithoutNamespaceDesc(t *testing.T) {
 	client := NacosClient{}
 	_, err := client.ModifyNamespace(vo.ModifyNamespaceParam{
 		Namespace:     "aaa",
 		NamespaceDesc: "",
 		NamespaceName: "name",
 	})
-	assert.NotNil(t,  err)
+	assert.NotNil(t, err)
 }
-
 
 // DeleteNamespace
 
@@ -595,11 +590,10 @@ func Test_DeleteNamespaceWithErrorResponse_401(t *testing.T) {
 	assert.NotNil(t, err)
 }
 
-
 func Test_DeleteNamespaceWithoutNamspaceId(t *testing.T) {
 	client := NacosClient{}
 	_, err := client.DeleteNamespace(vo.DeleteNamespaceParam{
 		NamespaceId: "",
 	})
-	assert.NotNil(t,  err)
+	assert.NotNil(t, err)
 }
