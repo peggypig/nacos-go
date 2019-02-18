@@ -51,7 +51,7 @@ ContextPath：nacos服务的上下文路径，默认是“/nacos”
 6. StopListenConfig    
 关闭配置监听
 7. AddConfigToListen  
-增加监听配置
+增加监听配置，在ListenConfig后才会生效
 
 #### service_client
 1. RegisterServiceInstance  
@@ -70,7 +70,7 @@ ContextPath：nacos服务的上下文路径，默认是“/nacos”
 停止向服务器发送心跳  
 8. GetServiceDetail  
 获取服务的详细信息  
-9. Subscribe
+9. Subscribe  
 服务监听
 
 ### quick start
