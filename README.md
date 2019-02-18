@@ -50,7 +50,7 @@ ContextPath：nacos服务的上下文路径，默认是“/nacos”
 监听配置变化
 6. StopListenConfig    
 关闭配置监听
-7. AddConfigToListen
+7. AddConfigToListen  
 增加监听配置
 
 #### service_client
