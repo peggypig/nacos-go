@@ -46,6 +46,13 @@ type GetServiceParam struct {
 	ServiceName string   `param:"serviceName"`
 }
 
+type GetServiceListParam struct {
+	StartPage   uint32 `param:"startPg"`
+	PageSize    uint32 `param:"pgSize"`
+	Keyword     string `param:"keyword"`
+	NamespaceId string `param:"namespaceId"`
+}
+
 type GetServiceInstanceParam struct {
 	Tenant      string `param:"tenant"`
 	HealthyOnly bool   `param:"healthyOnly"`
@@ -71,5 +78,5 @@ type GetServiceDetailParam struct {
 type SubscribeParam struct {
 	ServiceName       string   `param:"serviceName"`
 	Clusters          []string `param:"clusters"`
-	SubscribeCallback func([]SubscribeService,error)
+	SubscribeCallback func([]SubscribeService, error)
 }

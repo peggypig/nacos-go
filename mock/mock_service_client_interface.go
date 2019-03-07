@@ -87,10 +87,25 @@ func (m *MockIServiceClient) GetService(param vo.GetServiceParam) (vo.Service, e
 	return ret0, ret1
 }
 
+// GetService mocks base method
+func (m *MockIServiceClient) GetServiceList(param vo.GetServiceListParam) (vo.ServiceSummaryList, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetServiceList", param)
+	ret0, _ := ret[0].(vo.ServiceSummaryList)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
 // GetService indicates an expected call of GetService
 func (mr *MockIServiceClientMockRecorder) GetService(param interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetService", reflect.TypeOf((*MockIServiceClient)(nil).GetService), param)
+}
+
+// GetServiceList indicates an expected call of GetServiceList
+func (mr *MockIServiceClientMockRecorder) GetServiceList(param interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetServiceList", reflect.TypeOf((*MockIServiceClient)(nil).GetServiceList), param)
 }
 
 // GetServiceInstance mocks base method
