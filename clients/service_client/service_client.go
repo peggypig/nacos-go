@@ -324,6 +324,59 @@ func getService(agent http_agent.IHttpAgent, path string, timeoutMs uint64, para
 	return
 }
 
+// 查询全局服务列表
+func (client *ServiceClient) GetServiceList(param vo.GetServiceListParam) (service vo.ServiceSummaryList, err error) {
+	var clientConfig constant.ClientConfig
+	var serverConfigs []constant.ServerConfig
+	var agent http_agent.IHttpAgent
+	clientConfig, serverConfigs, agent, err = client.sync()
+	if err == nil {
+		params := util.TransformObject2Param(param)
+		for _, serverConfig := range serverConfigs {
+			path := client.buildBasePath(serverConfig) + constant.SERVICE_CATALOG_PATH + "/serviceList"
+			service, err = getServiceList(agent, path, clientConfig.TimeoutMs, params)
+			if err == nil {
+				break
+			} else {
+				if _, ok := err.(*nacos_error.NacosError); ok {
+					break
+				} else {
+					log.Println("[client.GetServiceList] get service list failed:", err.Error())
+				}
+			}
+		}
+	}
+	return
+}
+
+func getServiceList(agent http_agent.IHttpAgent, path string, timeoutMs uint64, params map[string]string) (service vo.ServiceSummaryList, err error) {
+	// 构造并完成http请求
+	var response *http.Response
+	log.Println("[client.getServiceList] request url:", path, ",params:", params)
+	response, err = agent.Get(path, nil, timeoutMs, params)
+	// response 解析
+	if err == nil {
+		bytes, errRead := ioutil.ReadAll(response.Body)
+		defer response.Body.Close()
+		if errRead != nil {
+			err = errRead
+		} else {
+			if response.StatusCode == 200 {
+				errUnmarshal := json.Unmarshal(bytes, &service)
+				if errUnmarshal != nil {
+					log.Println(errUnmarshal)
+					err = errors.New("[client.GetServiceList] " + string(bytes))
+				}
+			} else {
+				err = &nacos_error.NacosError{
+					ErrMsg: "[client.GetServiceList] [" + strconv.Itoa(response.StatusCode) + "]" + string(bytes),
+				}
+			}
+		}
+	}
+	return
+}
+
 // 获取服务某个实例
 func (client *ServiceClient) GetServiceInstance(param vo.GetServiceInstanceParam) (serviceInstance vo.ServiceInstance, err error) {
 	if len(param.ServiceName) <= 0 {

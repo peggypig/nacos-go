@@ -33,6 +33,7 @@ const (
 	SERVICE_BASE_PATH      = "/v1/ns"
 	SERVICE_PATH           = SERVICE_BASE_PATH + "/instance"
 	SERVICE_SUBSCRIBE_PATH = SERVICE_PATH + "/list"
+	SERVICE_CATALOG_PATH   = SERVICE_BASE_PATH + "/catalog"
 	NAMESPACE_PATH         = "/v1/console/namespaces"
 	SPLIT_CONFIG           = string(rune(1))
 	SPLIT_CONFIG_INNER     = string(rune(2))

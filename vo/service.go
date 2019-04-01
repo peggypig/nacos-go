@@ -45,6 +45,18 @@ type Service struct {
 	Metadata        map[string]string `json:"metadata"`
 }
 
+type ServiceSummary struct {
+	Name                 string `json:"name"`
+	ClusterCount         uint32 `json:"clusterCount"`
+	IpCount              uint32 `json:"ipCount"`
+	HealthyInstanceCount uint32 `json:"healthyInstanceCount"`
+}
+
+type ServiceSummaryList struct {
+	ServiceList []ServiceSummary `json:"serviceList"`
+	Count       uint32           `json:"count"`
+}
+
 type ServiceDetail struct {
 	Service  ServiceInfo `json:"service"`
 	Clusters []Cluster   `json:"clusters"`

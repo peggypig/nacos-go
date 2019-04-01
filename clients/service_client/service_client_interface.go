@@ -34,4 +34,6 @@ type IServiceClient interface {
 	GetServiceDetail(param vo.GetServiceDetailParam) (vo.ServiceDetail, error)
 	// 服务监听
 	Subscribe(param vo.SubscribeParam) error
+	// 查询全局服务列表
+	GetServiceList(param vo.GetServiceListParam) (vo.ServiceSummaryList, error)
 }
